@@ -1,0 +1,13 @@
+[Desktop Entry]
+Version=1.0
+Name=My Product
+Comment=A scholaris-v2 application
+# The Exec line includes %u to pass the URL to the application
+Exec=/usr/local/bin/scholaris-v2.exe %u
+Terminal=false
+Type=Application
+Icon=scholaris-v2.exe
+Categories=Utility;
+StartupWMClass=scholaris-v2.exe
+
+ 

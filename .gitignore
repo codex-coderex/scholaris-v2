@@ -1,0 +1,31 @@
+# ── Sensitive ────────────────────────────────────────────────
+.env
+.env.*
+config.json
+
+# ── Go build output ──────────────────────────────────────────
+bin/
+*.exe
+*.syso
+wails_windows_amd64.syso
+wails_darwin_*.syso
+wails_linux_*.syso
+
+# ── Frontend ─────────────────────────────────────────────────
+frontend/node_modules/
+frontend/dist/
+frontend/.svelte-kit/
+
+# ── Task checksums (auto-regenerated) ────────────────────────
+.task/
+
+# ── OS junk ──────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ── Editor ───────────────────────────────────────────────────
+.vscode/
+.idea/
+*.suo
+*.user
