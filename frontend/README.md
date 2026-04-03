@@ -16,7 +16,7 @@ The project is structured to separate system-level logic from the presentation l
 
 * **Go**: 1.21+
 * **Node.js**: 18+
-* **Wails v3**: [v3.wails.io](https://v3.wails.io/)
+* **Wails v3**: [v3.wails.io](https://v3.wails.io/) (The project currently uses v3.0.0-apha.74)
 * **PostgreSQL**: 14+
 
 ---
@@ -47,7 +47,7 @@ If you plan on using other Database Managers, you can search online for the setu
 ### Installation
 Clone the repository and install frontend dependencies:
 ```bash
-git clone [https://github.com/codex-coderex/scholaris-v2.git](https://github.com/codex-coderex/scholaris-v2.git)
+git clone https://github.com/codex-coderex/scholaris-v2.git
 cd scholaris-v2/frontend
 npm install
 ```
