@@ -1,50 +1,54 @@
-<script>
-import {Events} from "@wailsio/runtime";
-import {GreetService} from "../../bindings/changeme";
+<script lang="ts">
+  import StudentsTable from '$lib/components/StudentsTable.svelte'
+  import ProgramsTable from '$lib/components/ProgramsTable.svelte'
+  import CollegesTable from '$lib/components/CollegesTable.svelte'
 
-let name = '';
-let result = 'Please enter your name below 👇';
-let time = 'Listening for Time event...';
-
-const doGreet = () => {
-  let localName = name;
-  if (!localName) {
-    localName = 'anonymous';
-  }
-  GreetService.Greet(localName).then((resultValue) => {
-    result = resultValue;
-  }).catch((err) => {
-    console.log(err);
-  });
-}
-
-Events.On('time', (timeValue) => {
-  time = timeValue.data;
-});
+  let activeTab = $state<'students' | 'programs' | 'colleges'>('students')
 </script>
 
-<div class="container">
-  <div>
-    <span data-wml-openURL="https://wails.io">
-      <img src="/wails.png" class="logo" alt="Wails logo"/>
-    </span>
-    <span data-wml-openURL="https://svelte.dev">
-      <img src="/svelte.svg" class="logo svelte" alt="Svelte logo"/>
-    </span>
+<div class="min-h-screen bg-base-200">
+
+  <!-- navbar -->
+  <div class="navbar bg-base-100 shadow px-6">
+    <span class="text-xl font-bold">Scholaris V2</span>
   </div>
-  <h1>Wails + Svelte</h1>
-  <div aria-label="result" class="result">{result}</div>
-  <div class="card">
-    <div class="input-box">
-      <input aria-label="input" class="input" bind:value={name} type="text" autocomplete="off"/>
-      <button aria-label="greet-btn" class="btn" on:click={doGreet}>Greet</button>
+
+  <!-- tabs -->
+  <div class="px-6 pt-4">
+    <div role="tablist" class="tabs tabs-bordered">
+      <button
+        role="tab"
+        class="tab {activeTab === 'students' ? 'tab-active' : ''}"
+        onclick={() => activeTab = 'students'}
+      >
+        Students
+      </button>
+      <button
+        role="tab"
+        class="tab {activeTab === 'programs' ? 'tab-active' : ''}"
+        onclick={() => activeTab = 'programs'}
+      >
+        Programs
+      </button>
+      <button
+        role="tab"
+        class="tab {activeTab === 'colleges' ? 'tab-active' : ''}"
+        onclick={() => activeTab = 'colleges'}
+      >
+        Colleges
+      </button>
     </div>
   </div>
-  <div class="footer">
-    <div><p>Click on the Wails logo to learn more</p></div>
-    <div><p>{time}</p></div>
-  </div>
-</div>
 
-<style>
-</style>
+  <!-- content -->
+  <div class="px-6 pt-4">
+    {#if activeTab === 'students'}
+      <StudentsTable />
+    {:else if activeTab === 'programs'}
+      <ProgramsTable />
+    {:else}
+      <CollegesTable />
+    {/if}
+  </div>
+
+</div>
