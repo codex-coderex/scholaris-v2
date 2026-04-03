@@ -47,7 +47,7 @@ If you plan on using other Database Managers, you can search online for the setu
 ### Installation
 Clone the repository and install frontend dependencies:
 ```bash
-git clone https://github.com/codex-coderex/scholaris-v2.git
+git clone https://github.com/codex-coderex/scholaris-v2
 cd scholaris-v2/frontend
 npm install
 ```
