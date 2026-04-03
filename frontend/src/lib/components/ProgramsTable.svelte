@@ -1,12 +1,15 @@
 <script lang="ts">
   import {
     GetPrograms,
-    CreateProgram,
-    UpdateProgram,
     DeleteProgram,
     GetColleges
   } from '../../../bindings/scholaris-v2/appservice'
+  
   import { Program as ProgramModel } from '../../../bindings/scholaris-v2/internal/models/models.js'
+  import SearchToolbar from './shared/SearchToolbar.svelte'
+  import SortHeader from './shared/SortHeader.svelte'
+  import Pagination from './shared/Pagination.svelte'
+  import TableShell from './shared/TableShell.svelte'
 
   // state
 
@@ -20,21 +23,6 @@
   let pageSize    = $state(10)
   let loading     = $state(false)
   let error       = $state('')
-
-  // modal state
-
-  let showModal   = $state(false)
-  let editMode    = $state(false)
-
-  function createEmptyForm() {
-    return new ProgramModel({
-      code: '',
-      name: '',
-      college_code: ''
-    })
-  }
-
-  let form        = $state(createEmptyForm())
 
   // derived
 
@@ -76,32 +64,20 @@
     load()
   }
 
-  // modal
-
-  function openCreate() {
-    form      = createEmptyForm()
-    editMode  = false
-    showModal = true
+  function handleSearch(value: string) {
+    search = value
+    page = 1
+    load()
   }
 
-  function openEdit(p: any) {
-    form      = new ProgramModel(p)
-    editMode  = true
-    showModal = true
+  function previousPage() {
+    page--
+    load()
   }
 
-  async function save() {
-    try {
-      if (editMode) {
-        await UpdateProgram(form)
-      } else {
-        await CreateProgram(form)
-      }
-      showModal = false
-      load()
-    } catch (e: any) {
-      error = e.message ?? 'Failed to save'
-    }
+  function nextPage() {
+    page++
+    load()
   }
 
   async function remove(code: string) {
@@ -122,21 +98,13 @@
   })
 </script>
 
-<div class="card bg-base-100 shadow">
-  <div class="card-body">
+<div class="space-y-4">
 
-    <!-- toolbar -->
-    <div class="flex justify-between items-center mb-4">
-      <input
-        class="input input-bordered w-72"
-        placeholder="Search programs..."
-        bind:value={search}
-        oninput={() => { page = 1; load() }}
-      />
-      <button class="btn btn-primary" onclick={openCreate}>
-        + Add Program
-      </button>
-    </div>
+    <SearchToolbar
+      search={search}
+      placeholder="Search programs..."
+      onSearch={handleSearch}
+    />
 
     <!-- error -->
     {#if error}
@@ -145,122 +113,41 @@
 
     <!-- table -->
     <div class="overflow-x-auto">
-      <table class="table table-zebra w-full">
+      <table class="table w-full border border-slate-300 text-sm">
         <thead>
           <tr>
-            <th>
-              <button onclick={() => setSort('p.code')}>
-                Code {sortBy === 'p.code' ? (order === 'ASC' ? '↑' : '↓') : ''}
-              </button>
-            </th>
-            <th>
-              <button onclick={() => setSort('p.name')}>
-                Name {sortBy === 'p.name' ? (order === 'ASC' ? '↑' : '↓') : ''}
-              </button>
-            </th>
-            <th>
-              <button onclick={() => setSort('c.name')}>
-                College {sortBy === 'c.name' ? (order === 'ASC' ? '↑' : '↓') : ''}
-              </button>
-            </th>
-            <th>Actions</th>
+            <SortHeader label="Code" sortBy={sortBy} order={order} sortKey="p.code" onSort={setSort} />
+            <SortHeader label="Name" sortBy={sortBy} order={order} sortKey="p.name" onSort={setSort} />
+            <SortHeader label="College" sortBy={sortBy} order={order} sortKey="c.name" onSort={setSort} />
+            <th class="px-3 py-2 text-left text-xs font-medium text-slate-600">Actions</th>
           </tr>
         </thead>
         <tbody>
-          {#if loading}
-            <tr><td colspan="4" class="text-center py-8">Loading...</td></tr>
-          {:else if programs.length === 0}
-            <tr><td colspan="4" class="text-center py-8">No programs found</td></tr>
-          {:else}
+          <TableShell loading={loading} hasData={programs.length > 0} colspan={4} emptyMessage="No programs found">
             {#each programs as p}
               <tr>
                 <td>{p.code}</td>
                 <td>{p.name}</td>
                 <td>
-                  <span class="badge badge-ghost">{p.college?.code}</span>
-                  {p.college?.name}
+                  {p.college?.code} {p.college?.name}
                 </td>
-                <td class="flex gap-2">
-                  <button class="btn btn-sm btn-outline" onclick={() => openEdit(p)}>Edit</button>
-                  <button class="btn btn-sm btn-error btn-outline" onclick={() => remove(p.code)}>Delete</button>
+                <td>
+                  <button class="rounded border border-slate-300 px-2 py-1 text-xs hover:bg-slate-50" onclick={() => remove(p.code)}>Delete</button>
                 </td>
               </tr>
             {/each}
-          {/if}
+          </TableShell>
         </tbody>
       </table>
     </div>
 
     <!-- pagination -->
-    <div class="flex justify-between items-center mt-4">
-      <span class="text-sm text-base-content/60">{total} total</span>
-      <div class="join">
-        <button
-          class="join-item btn btn-sm"
-          disabled={page === 1}
-          onclick={() => { page--; load() }}
-        >«</button>
-        <button class="join-item btn btn-sm">{page} / {totalPages}</button>
-        <button
-          class="join-item btn btn-sm"
-          disabled={page >= totalPages}
-          onclick={() => { page++; load() }}
-        >»</button>
-      </div>
-    </div>
+    <Pagination
+      page={page}
+      totalPages={totalPages}
+      total={total}
+      onPrevious={previousPage}
+      onNext={nextPage}
+    />
 
-  </div>
 </div>
-
-<!-- modal -->
-{#if showModal}
-  <dialog class="modal modal-open">
-    <div class="modal-box">
-      <h3 class="font-bold text-lg mb-4">
-        {editMode ? 'Edit Program' : 'Add Program'}
-      </h3>
-
-      <fieldset class="fieldset">
-        <label class="fieldset-label" for="program-code">Code</label>
-        <input
-          id="program-code"
-          class="input input-bordered w-full"
-          bind:value={form.code}
-          disabled={editMode}
-          placeholder="e.g. BSCS"
-        />
-      </fieldset>
-
-      <fieldset class="fieldset mt-2">
-        <label class="fieldset-label" for="program-name">Name</label>
-        <input
-          id="program-name"
-          class="input input-bordered w-full"
-          bind:value={form.name}
-          placeholder="e.g. Bachelor of Science in Computer Science"
-        />
-      </fieldset>
-
-      <fieldset class="fieldset mt-2">
-        <label class="fieldset-label" for="program-college">College</label>
-        <select id="program-college" class="select select-bordered w-full" bind:value={form.college_code}>
-          <option value="">Select college</option>
-          {#each colleges as c}
-            <option value={c.code}>{c.code} — {c.name}</option>
-          {/each}
-        </select>
-      </fieldset>
-
-      <div class="modal-action">
-        <button class="btn" onclick={() => showModal = false}>Cancel</button>
-        <button class="btn btn-primary" onclick={save}>Save</button>
-      </div>
-    </div>
-    <button
-      type="button"
-      class="modal-backdrop"
-      aria-label="Close modal"
-      onclick={() => showModal = false}
-    ></button>
-  </dialog>
-{/if}

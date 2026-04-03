@@ -2,6 +2,8 @@
 .env
 .env.*
 config.json
+config.local.json
+config.*.local.json
 
 # ── Go build output ──────────────────────────────────────────
 bin/
