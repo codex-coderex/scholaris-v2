@@ -1,58 +1,38 @@
-# Scholaris v2
+# create-svelte
 
-Scholaris v2 is a cross-platform desktop application built on **Wails v3**. It utilizes a **Go** backend and a **SvelteKit** frontend, with **PostgreSQL** serving as the primary relational database.
+Everything you need to build a Svelte project, powered by [`create-svelte`](https://github.com/sveltejs/kit/tree/main/packages/create-svelte).
 
-## Architecture
+## Creating a project
 
-The project is structured to separate system-level logic from the presentation layer:
+If you're seeing this, you've probably already done this step. Congrats!
 
-* **Backend (`/internal`)**: Handles PostgreSQL connection pooling, migrations, and repository patterns.
-* **Frontend (`/frontend`)**: A TypeScript-based SvelteKit app. Communication with Go is handled via auto-generated IPC bindings.
-* **Database**: PostgreSQL for persistent data storage.
-
----
-
-## Prerequisites
-
-* **Go**: 1.21+
-* **Node.js**: 18+
-* **Wails v3**: [v3.wails.io](https://v3.wails.io/) (The project currently uses v3.0.0-apha.74)
-* **PostgreSQL**: 14+
-
----
-
-## Database Setup
-
-### 1. Install PostgreSQL
-Download and install the version appropriate for your OS from the [official PostgreSQL site](https://www.postgresql.org/download/). 
-
-* **Default Port**: `5432`
-* **Superuser**: `postgres`
-
-### 2. Management via DataGrip
-To initialize the schema and manage data:
-1.  Add a **New Data Source** -> **PostgreSQL**.
-2.  Enter your local credentials (Host: `localhost`, User: `postgres`).
-3.  Right-click the connection and select **New > Database**. 
-4.  Name the database `scholarisdb` or any name of your choosing.
-5.  Update your `config.json` in the project root with your matching DB name and credentials.
-
-### Note:
-If you plan on using other Database Managers, you can search online for the setup and deployment for your specific software.
-
----
-
-## Development
-
-### Installation
-Clone the repository and install frontend dependencies:
 ```bash
-git clone https://github.com/codex-coderex/scholaris-v2
-cd scholaris-v2/frontend
-npm install
+# create a new project in the current directory
+npm create svelte@latest
+
+# create a new project in my-app
+npm create svelte@latest my-app
 ```
 
-### Build
-After you made sure that you have installed all the dependencies.
-Go in to the project root and run `wails3 build`.
-The executable can then be found in the \bin folder.
+## Developing
+
+Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
+
+```bash
+npm run dev
+
+# or start the server and open the app in a new browser tab
+npm run dev -- --open
+```
+
+## Building
+
+To create a production version of your app:
+
+```bash
+npm run build
+```
+
+You can preview the production build with `npm run preview`.
+
+> To deploy your app, you may need to install an [adapter](https://kit.svelte.dev/docs/adapters) for your target environment.
