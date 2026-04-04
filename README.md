@@ -1,61 +1,58 @@
-# scholaris-v2
+# Scholaris v2
 
-# Welcome to Your New Wails3 Project!
+Scholaris v2 is a cross-platform desktop application built on **Wails v3**. It utilizes a **Go** backend and a **SvelteKit** frontend, with **PostgreSQL** serving as the primary relational database.
 
-Congratulations on generating your Wails3 application! This README will guide you through the next steps to get your project up and running.
+## Architecture
 
-## Getting Started
+The project is structured to separate system-level logic from the presentation layer:
 
-1. Navigate to your project directory in the terminal.
+* **Backend (`/internal`)**: Handles PostgreSQL connection pooling, migrations, and repository patterns.
+* **Frontend (`/frontend`)**: A TypeScript-based SvelteKit app. Communication with Go is handled via auto-generated IPC bindings.
+* **Database**: PostgreSQL for persistent data storage.
 
-2. To run your application in development mode, use the following command:
+---
 
-   ```
-   wails3 dev
-   ```
+## Prerequisites
 
-   This will start your application and enable hot-reloading for both frontend and backend changes.
+* **Go**: 1.21+
+* **Node.js**: 18+
+* **Wails v3**: [v3.wails.io](https://v3.wails.io/) (The project currently uses v3.0.0-apha.74)
+* **PostgreSQL**: 14+
 
-3. To build your application for production, use:
+---
 
-   ```
-   wails3 build
-   ```
+## Database Setup
 
-   This will create a production-ready executable in the `build` directory.
+### 1. Install PostgreSQL
+Download and install the version appropriate for your OS from the [official PostgreSQL site](https://www.postgresql.org/download/). 
 
-## Exploring Wails3 Features
+* **Default Port**: `5432`
+* **Superuser**: `postgres`
 
-Now that you have your project set up, it's time to explore the features that Wails3 offers:
+### 2. Management via DataGrip
+To initialize the schema and manage data:
+1.  Add a **New Data Source** -> **PostgreSQL**.
+2.  Enter your local credentials (Host: `localhost`, User: `postgres`).
+3.  Right-click the connection and select **New > Database**. 
+4.  Name the database `scholarisdb` or any name of your choosing.
+5.  Update your `config.json` in the project root with your matching DB name and credentials.
 
-1. **Check out the examples**: The best way to learn is by example. Visit the `examples` directory in the `v3/examples` directory to see various sample applications.
+### Note:
+If you plan on using other Database Managers, you can search online for the setup and deployment for your specific software.
 
-2. **Run an example**: To run any of the examples, navigate to the example's directory and use:
+---
 
-   ```
-   go run .
-   ```
+## Development
 
-   Note: Some examples may be under development during the alpha phase.
+### Installation
+Clone the repository and install frontend dependencies:
+```bash
+git clone https://github.com/codex-coderex/scholaris-v2
+cd scholaris-v2/frontend
+npm install
+```
 
-3. **Explore the documentation**: Visit the [Wails3 documentation](https://v3.wails.io/) for in-depth guides and API references.
-
-4. **Join the community**: Have questions or want to share your progress? Join the [Wails Discord](https://discord.gg/JDdSxwjhGf) or visit the [Wails discussions on GitHub](https://github.com/wailsapp/wails/discussions).
-
-## Project Structure
-
-Take a moment to familiarize yourself with your project structure:
-
-- `frontend/`: Contains your frontend code (HTML, CSS, JavaScript/TypeScript)
-- `main.go`: The entry point of your Go backend
-- `app.go`: Define your application structure and methods here
-- `wails.json`: Configuration file for your Wails project
-
-## Next Steps
-
-1. Modify the frontend in the `frontend/` directory to create your desired UI.
-2. Add backend functionality in `main.go`.
-3. Use `wails3 dev` to see your changes in real-time.
-4. When ready, build your application with `wails3 build`.
-
-Happy coding with Wails3! If you encounter any issues or have questions, don't hesitate to consult the documentation or reach out to the Wails community.
+### Build
+After you made sure that you have installed all the dependencies.
+Go in to the project root and run `wails3 build`.
+The executable can then be found in the \bin folder.
