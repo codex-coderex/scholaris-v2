@@ -1,4 +1,12 @@
-# Scholaris v2
+<p align="center">
+  <img src="scholarisbanner.png" alt="Scholaris Logo" width="664">
+</p>
+
+<div align="center">
+
+![Go](https://img.shields.io/badge/go-1.26.0-blue?style=flat&logo=go&logoColor=white) ![WailsV3](https://img.shields.io/badge/framework-wails-red?style=flat) ![Data](https://img.shields.io/badge/data-PostgreSQL-blue?style=flat) ![Build](https://img.shields.io/badge/build-passing-brightgreen?style=flat) ![License](https://img.shields.io/badge/license-MIT-orange?style=flat)
+
+</div>
 
 Scholaris v2 is a cross-platform desktop application built on **Wails v3**. It utilizes a **Go** backend and a **SvelteKit** frontend, with **PostgreSQL** serving as the primary relational database.
 
