@@ -115,25 +115,29 @@ var programs = []struct {
 func Seed(pool *pgxpool.Pool) error {
 	ctx := context.Background()
 
-	// colleges
-	for _, c := range colleges {
-		if _, err := pool.Exec(ctx, `
-			INSERT INTO college (code, name)
-			VALUES ($1, $2)
-			ON CONFLICT (code) DO NOTHING
-		`, c.code, c.name); err != nil {
-			return fmt.Errorf("seed college %s: %w", c.code, err)
-		}
+	// colleges and programs are seeded only on first run so user deletes persist.
+	var collegeCount int
+	if err := pool.QueryRow(ctx, `SELECT COUNT(*) FROM college`).Scan(&collegeCount); err != nil {
+		return fmt.Errorf("seed college count check: %w", err)
 	}
 
-	// programs
-	for _, p := range programs {
-		if _, err := pool.Exec(ctx, `
-			INSERT INTO program (code, name, college_code)
-			VALUES ($1, $2, $3)
-			ON CONFLICT (code) DO NOTHING
-		`, p.code, p.name, p.collegeCode); err != nil {
-			return fmt.Errorf("seed program %s: %w", p.code, err)
+	if collegeCount == 0 {
+		for _, c := range colleges {
+			if _, err := pool.Exec(ctx, `
+				INSERT INTO college (code, name)
+				VALUES ($1, $2)
+			`, c.code, c.name); err != nil {
+				return fmt.Errorf("seed college %s: %w", c.code, err)
+			}
+		}
+
+		for _, p := range programs {
+			if _, err := pool.Exec(ctx, `
+				INSERT INTO program (code, name, college_code)
+				VALUES ($1, $2, $3)
+			`, p.code, p.name, p.collegeCode); err != nil {
+				return fmt.Errorf("seed program %s: %w", p.code, err)
+			}
 		}
 	}
 
