@@ -1,76 +1,869 @@
 @import "tailwindcss";
 @plugin "daisyui";
 
-:root {
-  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  font-size: 16px;
-  line-height: 1.5;
+@font-face {
+  font-family: "Lora";
+  font-style: normal;
   font-weight: 400;
-  color: #111827;
-  background: #f8fafc;
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  -webkit-text-size-adjust: 100%;
+  src: url("/font/Lora/Lora-Regular.woff2") format("woff2");
+  font-display: swap;
 }
 
 @font-face {
-  font-family: "Inter";
+  font-family: "Lora";
   font-style: normal;
-  font-weight: 400;
-  src: local(""), url("/Inter-Medium.ttf") format("truetype");
+  font-weight: 500;
+  src: url("/font/Lora/Lora-500.woff2") format("woff2");
+  font-display: swap;
 }
 
-html,
-body,
-#app {
+@font-face {
+  font-family: "Lora";
+  font-style: normal;
+  font-weight: 600;
+  src: url("/font/Lora/Lora-600.woff2") format("woff2");
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "DM Sans";
+  font-style: normal;
+  font-weight: 300;
+  src: url("/font/DM-Sans/DM-Sans-300.woff2") format("woff2");
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "DM Sans";
+  font-style: normal;
+  font-weight: 400;
+  src: url("/font/DM-Sans/DM-Sans-Regular.woff2") format("woff2");
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "DM Sans";
+  font-style: normal;
+  font-weight: 500;
+  src: url("/font/DM-Sans/DM-Sans-500.woff2") format("woff2");
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "DM Sans";
+  font-style: normal;
+  font-weight: 600;
+  src: url("/font/DM-Sans/DM-Sans-600.woff2") format("woff2");
+  font-display: swap;
+}
+
+:root {
+  --bg-base: #f0f4fa;
+  --bg-surface: #ffffff;
+  --bg-elevated: #e8edf7;
+  --bg-hover: #dde4f2;
+  --border: #c8d3e8;
+  --border-subtle: #dce4f0;
+  --text-primary: #0a1628;
+  --text-secondary: #1e3a6e;
+  --text-muted: #6b82aa;
+  --accent: #1a3a8f;
+  --accent-hover: #0f2870;
+  --accent-dim: rgba(26, 58, 143, 0.08);
+  --accent-foreground: #ffffff;
+  --danger: #c43a3a;
+  --danger-hover: #a82e2e;
+  --danger-dim: rgba(196, 58, 58, 0.08);
+  --modal-overlay: rgba(0, 0, 0, 0.55);
+  --modal-backdrop-blur: 8px;
+  --modal-border: #c8d3e8;
+  --modal-bg: #ffffff;
+  --modal-shadow: 0 8px 32px rgba(10, 22, 60, 0.16);
+  --modal-field-bg: #f0f4fa;
+  --modal-field-border: #c8d3e8;
+  --modal-field-text: #0a1628;
+  --modal-title-text: #0a1628;
+  --modal-label-text: #6b82aa;
+  --modal-body-text: #0a1628;
+  --modal-placeholder: #6b82aa;
+  --modal-focus: #1a3a8f;
+  --modal-focus-dim: rgba(26, 58, 143, 0.08);
+  --modal-menu-shadow: 0 8px 32px rgba(10, 22, 60, 0.16);
+  --modal-primary-bg: #1a3a8f;
+  --modal-primary-hover: #0f2870;
+  --modal-primary-text: #ffffff;
+  --modal-ghost-bg: #e8edf7;
+  --modal-ghost-hover: #dde4f2;
+  --modal-ghost-border: #c8d3e8;
+  --modal-ghost-text: #1e3a6e;
+  --modal-ghost-text-hover: #0a1628;
+  --transition-fast: 0.16s ease;
+  --transition-base: 0.24s ease;
+  --transition-slow: 0.34s ease;
+
+  font-family: "DM Sans", "Segoe UI", sans-serif;
+  font-size: 15px;
+  line-height: 1.55;
+  color: var(--text-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.ssis-app[data-mode="dark"] {
+  --bg-base: #0c0f1a;
+  --bg-surface: #111827;
+  --bg-elevated: #161e30;
+  --bg-hover: #1c2640;
+  --border: #243050;
+  --border-subtle: #182038;
+  --text-primary: #ffffff;
+  --text-secondary: #9da8c2;
+  --text-muted: #4e5a7a;
+  --accent: #c9a84c;
+  --accent-hover: #e0c070;
+  --accent-dim: rgba(201, 168, 76, 0.12);
+  --accent-foreground: #1b1403;
+  --danger: #e05252;
+  --danger-hover: #c94444;
+  --danger-dim: rgba(224, 82, 82, 0.12);
+  --modal-overlay: rgba(3, 8, 20, 0.62);
+  --modal-backdrop-blur: 10px;
+  --modal-border: #30456f;
+  --modal-bg: #111827;
+  --modal-shadow: 0 22px 64px rgba(0, 0, 0, 0.58);
+  --modal-field-bg: #161e30;
+  --modal-field-border: #243050;
+  --modal-field-text: #e7edf9;
+  --modal-title-text: #f8fbff;
+  --modal-label-text: #a9b8d6;
+  --modal-body-text: #d4deef;
+  --modal-placeholder: #8093b8;
+  --modal-focus: #c9a84c;
+  --modal-focus-dim: rgba(201, 168, 76, 0.28);
+  --modal-menu-shadow: 0 22px 54px rgba(0, 0, 0, 0.54);
+  --modal-primary-bg: #c9a84c;
+  --modal-primary-hover: #e0c070;
+  --modal-primary-text: #1b1403;
+  --modal-ghost-bg: #1a2337;
+  --modal-ghost-hover: #25314d;
+  --modal-ghost-border: #314062;
+  --modal-ghost-text: #d4deef;
+  --modal-ghost-text-hover: #f1f5ff;
+}
+
+html, body, #app {
+  width: 100%;
+  height: 100%;
   min-height: 100%;
+  margin: 0;
 }
 
 body {
-  margin: 0;
-  min-width: 320px;
+  font-family: "DM Sans", "Segoe UI", sans-serif;
+  color: var(--text-primary);
+  background: var(--bg-base);
 }
 
-* {
-  box-sizing: border-box;
-}
+* { box-sizing: border-box; }
 
 ::selection {
-  background: rgba(148, 163, 184, 0.35);
+  background: color-mix(in srgb, var(--accent) 26%, transparent);
 }
 
-button,
-input,
-select,
-textarea {
-  font: inherit;
-}
-
-a {
-  color: inherit;
-  text-decoration: none;
-}
-
-::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
-}
-
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb {
-  background: rgba(100, 116, 139, 0.35);
+  background: rgba(148, 163, 184, 0.35);
   border-radius: 999px;
   border: 2px solid transparent;
   background-clip: padding-box;
 }
-
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(71, 85, 105, 0.48);
+  background: rgba(148, 163, 184, 0.6);
   border: 2px solid transparent;
   background-clip: padding-box;
+}
+
+.ssis-app {
+  display: flex;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  background: var(--bg-base);
+  color: var(--text-primary);
+  transition: background var(--transition-slow), color var(--transition-slow);
+}
+
+.ssis-app[data-mode="dark"] {
+  background: var(--bg-base);
+}
+
+.ssis-shell {
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr);
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  height: 100vh;
+}
+
+.ssis-sidebar {
+  background: var(--bg-surface);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  padding: 28px 18px 20px;
+  transition: background var(--transition-slow), border-color var(--transition-slow);
+}
+
+.ssis-app[data-mode="dark"] .ssis-sidebar {
+  background: var(--bg-surface);
+  border-right-color: var(--border);
+}
+
+.ssis-brand {
+  padding: 0 8px;
+  margin-bottom: 30px;
+}
+
+.ssis-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+
+.font-lora {
+  font-family: "Lora", serif;
+}
+
+.font-dmsans {
+  font-family: "DM Sans", "Segoe UI", sans-serif;
+}
+
+.ssis-nav-item {
+  padding: 10px 12px;
+  border-radius: 6px;
+  color: var(--text-secondary);
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.ssis-nav-item::before {
+  content: "";
+  width: 3px;
+  height: 0;
+  background: var(--accent);
+  border-radius: 2px;
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  transition: height 0.2s ease;
+}
+
+.ssis-nav-item:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.ssis-nav-item.is-active {
+  background: var(--accent-dim);
+  color: var(--accent);
+}
+
+.ssis-nav-item.is-active::before {
+  height: 60%;
+}
+
+.ssis-main {
+  height: 100vh;
+  overflow-y: auto;
+  padding: 32px 36px;
+  background: var(--bg-base);
+  transition: background var(--transition-slow);
+}
+
+.ssis-main::-webkit-scrollbar {
+  width: 6px;
+}
+
+.ssis-main::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 3px;
+}
+
+.ssis-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.ssis-title {
+  font-family: "Lora", serif;
+  font-size: 40px;
+  font-weight: 600;
+  letter-spacing: -0.3px;
+  color: var(--text-primary);
+  line-height: 1.1;
+}
+
+.ssis-subtitle {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.ssis-tab-panel {
+  animation: ssis-panel-in 260ms ease;
+}
+
+@keyframes ssis-panel-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.ssis-content-card {
+  margin-top: 24px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px;
+}
+
+.ssis-search-wrap {
+  position: relative;
+  max-width: 380px;
+}
+
+.ssis-search-input {
+  width: 100%;
+  padding: 9px 12px 9px 36px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text-primary);
+  font-size: 14px;
+  transition: border-color var(--transition-base), box-shadow var(--transition-base), background var(--transition-base);
+}
+
+.ssis-search-input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-dim);
+}
+
+.ssis-table-wrap {
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+  transition: border-color var(--transition-base), background var(--transition-base), box-shadow var(--transition-base);
+}
+
+.ssis-data-table {
+  font-family: "DM Sans", "Segoe UI", sans-serif;
+  font-size: 0.93rem;
+  line-height: 1.45;
+  table-layout: fixed;
+}
+
+.ssis-thead {
+  background: var(--bg-elevated);
+  border-bottom: 1px solid var(--border);
+}
+
+.ssis-head-text {
+  color: var(--text-muted);
+}
+
+.ssis-col-header {
+  width: 7.25rem;
+  min-width: 7.25rem;
+  max-width: 7.25rem;
+}
+
+.ssis-col-header.ssis-code-col-header,
+.ssis-code-col-cell {
+  width: 8.75rem;
+  min-width: 8.75rem;
+  max-width: 8.75rem;
+}
+
+.ssis-col-header.ssis-name-col-header,
+.ssis-name-col-cell {
+  width: auto;
+  min-width: 18.5rem;
+  max-width: none;
+}
+
+.ssis-col-header.ssis-college-col-header,
+.ssis-college-col-cell {
+  width: 9rem;
+  min-width: 9rem;
+  max-width: 9rem;
+}
+
+.ssis-row:hover {
+  background: var(--bg-hover);
+}
+
+.ssis-row {
+  animation: ssis-row-in 240ms ease;
+}
+
+@keyframes ssis-row-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.ssis-action-header {
+  width: 7.75rem;
+  min-width: 7.75rem;
+  max-width: 7.75rem;
+  white-space: nowrap;
+  text-align: center;
+  padding: 0.75rem 1rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.ssis-action-cell {
+  white-space: nowrap;
+  width: 7.75rem;
+  min-width: 7.75rem;
+  max-width: 7.75rem;
+  text-align: center;
+}
+
+.ssis-cell-clip {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ssis-table-panel {
+  display: flex;
+  flex-direction: column;
+}
+
+.ssis-table-panel .ssis-table-wrap {
+  border-bottom: 0;
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.ssis-pagination-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.65rem 1rem;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-top: 1px solid var(--border);
+  border-bottom-left-radius: 10px;
+  border-bottom-right-radius: 10px;
+}
+
+.ssis-pagination-controls {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.ssis-pagination-nav,
+.ssis-pagination-current {
+  height: 1.9rem;
+  min-width: 1.9rem;
+  border: 1px solid var(--border);
+  border-radius: 0.45rem;
+  background: var(--bg-surface);
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 0.55rem;
+  transition: background var(--transition-base), color var(--transition-base), border-color var(--transition-base), opacity var(--transition-base);
+}
+
+.ssis-pagination-current {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-foreground);
+  min-width: 2rem;
+}
+
+.ssis-pagination-nav:hover:not(:disabled) {
+  background: var(--accent-dim);
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+.ssis-pagination-nav:disabled,
+.ssis-pagination-current:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.ssis-pagination-nav:focus,
+.ssis-pagination-nav:focus-visible,
+.ssis-pagination-current:focus,
+.ssis-pagination-current:focus-visible {
+  outline: none;
+  box-shadow: none;
+}
+
+@media (max-width: 1140px) {
+  .ssis-col-header {
+    width: 6.5rem;
+    min-width: 6.5rem;
+    max-width: 6.5rem;
+  }
+
+  .ssis-col-header.ssis-code-col-header,
+  .ssis-code-col-cell {
+    width: 7.8rem;
+    min-width: 7.8rem;
+    max-width: 7.8rem;
+  }
+
+  .ssis-col-header.ssis-name-col-header,
+  .ssis-name-col-cell {
+    min-width: 15rem;
+  }
+
+  .ssis-col-header.ssis-college-col-header,
+  .ssis-college-col-cell {
+    width: 8rem;
+    min-width: 8rem;
+    max-width: 8rem;
+  }
+
+  .ssis-action-header,
+  .ssis-action-cell {
+    width: 7.1rem;
+    min-width: 7.1rem;
+    max-width: 7.1rem;
+  }
+}
+
+@media (max-width: 980px) {
+  .ssis-col-header {
+    width: 6rem;
+    min-width: 6rem;
+    max-width: 6rem;
+  }
+
+  .ssis-col-header.ssis-code-col-header,
+  .ssis-code-col-cell {
+    width: 7rem;
+    min-width: 7rem;
+    max-width: 7rem;
+  }
+
+  .ssis-col-header.ssis-name-col-header,
+  .ssis-name-col-cell {
+    min-width: 12.5rem;
+  }
+
+  .ssis-col-header.ssis-college-col-header,
+  .ssis-college-col-cell {
+    width: 7.4rem;
+    min-width: 7.4rem;
+    max-width: 7.4rem;
+  }
+
+  .ssis-action-header,
+  .ssis-action-cell {
+    width: 6.6rem;
+    min-width: 6.6rem;
+    max-width: 6.6rem;
+  }
+
+  .ssis-data-table th,
+  .ssis-data-table td {
+    padding-left: 0.7rem !important;
+    padding-right: 0.7rem !important;
+  }
+
+  .ssis-pagination-bar {
+    padding: 0.55rem 0.7rem;
+  }
+}
+
+.ssis-cell-primary {
+  color: var(--text-primary);
+}
+
+.ssis-cell-muted {
+  color: var(--text-secondary);
+}
+
+.ssis-code-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+  font-family: "DM Sans", "Segoe UI", sans-serif;
+  font-size: 0.66rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  line-height: 1;
+  padding: 0.24rem 0.5rem;
+  white-space: nowrap;
+}
+
+.btn.ssis-btn-primary {
+  background: var(--accent);
+  color: var(--accent-foreground);
+  border-width: 1px;
+  border-style: solid;
+  border: 1px solid transparent;
+  box-shadow: none;
+  transform: none;
+  transition: background var(--transition-base), color var(--transition-base), border-color var(--transition-base);
+}
+
+.btn.ssis-btn-primary:hover {
+  background: var(--accent-hover);
+  border-color: transparent;
+  box-shadow: none;
+  transform: none;
+}
+
+.btn.ssis-btn-primary:focus,
+.btn.ssis-btn-primary:focus-visible,
+.ssis-mode-switch:focus,
+.ssis-mode-switch:focus-visible {
+  outline: none;
+  box-shadow: none;
+  transform: none;
+}
+
+.btn.ssis-add-btn {
+  border-radius: 999px;
+  padding: 0.6rem 1.1rem;
+  border-width: 1px;
+  border-style: solid;
+  border-color: transparent;
+}
+
+.btn.ssis-add-btn:hover,
+.btn.ssis-add-btn:active,
+.btn.ssis-add-btn:focus,
+.btn.ssis-add-btn:focus-visible {
+  border-color: transparent;
+  box-shadow: none;
+  outline: none;
+  transform: none;
+}
+
+.ssis-mode-switch {
+  width: 100%;
+  border: none;
+  background: transparent;
+  border-radius: 8px;
+  padding: 0.2rem 0.05rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  cursor: pointer;
+  transition: background var(--transition-base), color var(--transition-base);
+}
+
+.ssis-mode-switch:hover {
+  background: color-mix(in srgb, var(--bg-hover) 45%, transparent);
+}
+
+.ssis-mode-label {
+  font-size: 0.86rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  color: var(--text-secondary);
+}
+
+.ssis-mode-track {
+  position: relative;
+  width: 38px;
+  height: 22px;
+  border-radius: 999px;
+  border: none;
+  background: #c5d0e4;
+  overflow: hidden;
+  transition: background var(--transition-base);
+}
+
+.ssis-mode-track.is-dark {
+  background: color-mix(in srgb, var(--accent) 72%, #8ea2c9);
+}
+
+.ssis-mode-thumb {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 16px;
+  height: 16px;
+  border-radius: 999px;
+  background: #ffffff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.24);
+  transition: left var(--transition-base);
+  z-index: 1;
+}
+
+.ssis-mode-thumb.is-dark {
+  left: 19px;
+}
+
+.ssis-error {
+  border: 1px solid var(--danger-dim);
+  background: var(--danger-dim);
+  color: var(--danger);
+}
+
+.modal.modal-open {
+  background: transparent;
+}
+
+.modal.modal-open .modal-backdrop {
+  background: var(--modal-overlay);
+  backdrop-filter: blur(var(--modal-backdrop-blur));
+  -webkit-backdrop-filter: blur(var(--modal-backdrop-blur));
+}
+
+.ssis-modal-box {
+  border-radius: 0.55rem;
+  border: 1px solid var(--modal-border);
+  background: var(--modal-bg);
+  box-shadow: var(--modal-shadow);
+}
+
+.ssis-modal-header {
+  border-bottom: none;
+}
+
+.ssis-modal-title {
+  font-size: clamp(2rem, 1.9rem + 0.4vw, 2.25rem);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.08;
+  color: var(--modal-title-text);
+}
+
+.ssis-modal-content {
+  color: var(--modal-body-text);
+}
+
+.ssis-modal-content .label-text {
+  color: var(--modal-label-text) !important;
+}
+
+.ssis-modal-content .input,
+.ssis-modal-content .select {
+  border-color: var(--modal-field-border);
+  background: var(--modal-field-bg);
+  color: var(--modal-field-text);
+  border-radius: 0.45rem;
+}
+
+.ssis-modal-content .input::placeholder {
+  color: var(--modal-placeholder);
+}
+
+.ssis-modal-content .input:focus,
+.ssis-modal-content .input:focus-visible,
+.ssis-modal-content .select:focus,
+.ssis-modal-content .select:focus-visible {
+  border-color: var(--modal-focus) !important;
+  outline: none;
+  box-shadow: 0 0 0 3px var(--modal-focus-dim) !important;
+}
+
+.ssis-modal-content .input:focus-visible,
+.ssis-modal-content .select:focus-visible {
+  --tw-ring-color: transparent;
+}
+
+.ssis-modal-content .ssis-combobox-menu {
+  border-color: var(--modal-field-border);
+  box-shadow: var(--modal-menu-shadow);
+}
+
+.ssis-modal-content .ssis-combobox-menu:focus,
+.ssis-modal-content .ssis-combobox-menu:focus-visible {
+  outline: none;
+  box-shadow: var(--modal-menu-shadow);
+}
+
+.ssis-modal-content .modal-action {
+  margin-top: 1.25rem;
+}
+
+.ssis-modal-content .btn.btn-primary {
+  border: none;
+  border-radius: 0.45rem;
+  background: var(--modal-primary-bg);
+  color: var(--modal-primary-text);
+}
+
+.ssis-modal-content .btn.btn-primary:hover {
+  background: var(--modal-primary-hover);
+}
+
+.ssis-modal-content .btn.btn-ghost {
+  border: 1px solid var(--modal-ghost-border);
+  border-radius: 0.45rem;
+  background: var(--modal-ghost-bg);
+  color: var(--modal-ghost-text);
+}
+
+.ssis-modal-content .btn.btn-ghost:hover {
+  background: var(--modal-ghost-hover);
+  color: var(--modal-ghost-text-hover);
+}
+
+.ssis-modal-content .btn.ssis-btn-danger-hover:hover {
+  border-color: color-mix(in srgb, var(--danger) 42%, var(--modal-ghost-border));
+  background: color-mix(in srgb, var(--danger) 14%, var(--modal-ghost-bg));
+  color: var(--danger);
+}
+
+.ssis-student-details {
+  color: var(--modal-body-text);
+}
+
+.ssis-student-hero {
+  transition: border-color var(--transition-base), background var(--transition-base);
+}
+
+.ssis-detail-card {
+  transition: border-color var(--transition-base), background var(--transition-base), box-shadow var(--transition-base);
+}
+
+.ssis-detail-card:hover {
+  border-color: color-mix(in srgb, var(--accent) 24%, var(--border));
+  box-shadow: 0 6px 20px color-mix(in srgb, var(--accent) 14%, transparent);
 }

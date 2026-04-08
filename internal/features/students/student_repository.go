@@ -1,10 +1,10 @@
-package repository
+package students
 
 import (
 	"context"
 	"fmt"
 
-	"scholaris-v2/internal/models"
+	"scholaris-v2/internal/shared/utils"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -33,6 +33,10 @@ func normalizeStudentSort(sortBy string) string {
 		return "s.first_name"
 	case "last_name", "s.last_name":
 		return "s.last_name"
+	case "year", "s.year":
+		return "s.year"
+	case "gender", "s.gender":
+		return "s.gender"
 	case "program", "p.code":
 		return "p.code"
 	case "college", "c.name":
@@ -44,11 +48,11 @@ func normalizeStudentSort(sortBy string) string {
 
 // queries
 
-func (r *StudentRepository) GetAll(search, sortBy, order string, page, pageSize int) ([]models.Student, int, error) {
+func (r *StudentRepository) GetAll(search, sortBy, order string, page, pageSize int) ([]Student, int, error) {
 	offset := (page - 1) * pageSize
-	pattern := searchPattern(search)
+	pattern := utils.SearchPattern(search)
 	sortColumn := normalizeStudentSort(sortBy)
-	sortOrder := normalizeSortOrder(order)
+	sortOrder := utils.NormalizeSortOrder(order)
 
 	query := fmt.Sprintf(`
 		SELECT s.id, s.first_name, s.last_name,
@@ -74,9 +78,9 @@ func (r *StudentRepository) GetAll(search, sortBy, order string, page, pageSize 
 	}
 	defer rows.Close()
 
-	var students []models.Student
+	var students []Student
 	for rows.Next() {
-		var s models.Student
+		var s Student
 		if err := rows.Scan(
 			&s.Id, &s.FirstName, &s.LastName,
 			&s.Year, &s.Gender, &s.ProgramCode,
@@ -106,8 +110,8 @@ func (r *StudentRepository) GetAll(search, sortBy, order string, page, pageSize 
 	return students, total, nil
 }
 
-func (r *StudentRepository) GetById(id string) (models.Student, error) {
-	var s models.Student
+func (r *StudentRepository) GetById(id string) (Student, error) {
+	var s Student
 	if err := r.pool.QueryRow(r.ctx(), `
 		SELECT s.id, s.first_name, s.last_name,
 		       s.year, s.gender, s.program_code,
@@ -123,14 +127,14 @@ func (r *StudentRepository) GetById(id string) (models.Student, error) {
 		&s.Program.Code, &s.Program.Name,
 		&s.Program.College.Code, &s.Program.College.Name,
 	); err != nil {
-		return models.Student{}, fmt.Errorf("GetById %s: %w", id, err)
+		return Student{}, fmt.Errorf("GetById %s: %w", id, err)
 	}
 	return s, nil
 }
 
 // mutations
 
-func (r *StudentRepository) Create(s models.Student) error {
+func (r *StudentRepository) Create(s Student) error {
 	if _, err := r.pool.Exec(r.ctx(), `
 		INSERT INTO student (id, first_name, last_name, year, gender, program_code)
 		VALUES ($1, $2, $3, $4, $5, $6)
@@ -140,7 +144,7 @@ func (r *StudentRepository) Create(s models.Student) error {
 	return nil
 }
 
-func (r *StudentRepository) Update(s models.Student) error {
+func (r *StudentRepository) Update(s Student) error {
 	if _, err := r.pool.Exec(r.ctx(), `
 		UPDATE student
 		SET    first_name   = $1,

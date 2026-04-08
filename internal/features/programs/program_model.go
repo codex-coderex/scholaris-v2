@@ -1,4 +1,4 @@
-package models
+package programs
 
 // program
 
@@ -7,4 +7,9 @@ type Program struct {
 	Name        string  `json:"name"`
 	CollegeCode string  `json:"college_code"`
 	College     College `json:"college"`
+}
+
+type College struct {
+	Code string `json:"code"`
+	Name string `json:"name"`
 }

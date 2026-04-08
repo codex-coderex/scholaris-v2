@@ -1,10 +1,10 @@
-package repository
+package programs
 
 import (
 	"context"
 	"fmt"
 
-	"scholaris-v2/internal/models"
+	"scholaris-v2/internal/shared/utils"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -40,34 +40,35 @@ func normalizeProgramSort(sortBy string) string {
 
 // queries
 
-func (r *ProgramRepository) GetAll(search, sortBy, order string, page, pageSize int) ([]models.Program, int, error) {
+func (r *ProgramRepository) GetAll(search, sortBy, order string, page, pageSize int, collegeCode string) ([]Program, int, error) {
 	offset := (page - 1) * pageSize
-	pattern := searchPattern(search)
+	pattern := utils.SearchPattern(search)
 	sortColumn := normalizeProgramSort(sortBy)
-	sortOrder := normalizeSortOrder(order)
+	sortOrder := utils.NormalizeSortOrder(order)
 
 	query := fmt.Sprintf(`
 		SELECT p.code, p.name, p.college_code,
 		       c.code, c.name
 		FROM   program p
 		JOIN   college c ON p.college_code = c.code
-		WHERE  p.name ILIKE $1
+		WHERE  (p.name ILIKE $1
 		OR     p.code ILIKE $1
-		OR     c.name ILIKE $1
+		OR     c.name ILIKE $1)
+		AND    ($2 = '' OR p.college_code = $2)
 		ORDER  BY %s %s
-		LIMIT  $2
-		OFFSET $3
+		LIMIT  $3
+		OFFSET $4
 	`, sortColumn, sortOrder)
 
-	rows, err := r.pool.Query(r.ctx(), query, pattern, pageSize, offset)
+	rows, err := r.pool.Query(r.ctx(), query, pattern, collegeCode, pageSize, offset)
 	if err != nil {
 		return nil, 0, fmt.Errorf("GetAll programs: %w", err)
 	}
 	defer rows.Close()
 
-	var programs []models.Program
+	var programs []Program
 	for rows.Next() {
-		var p models.Program
+		var p Program
 		if err := rows.Scan(
 			&p.Code, &p.Name, &p.CollegeCode,
 			&p.College.Code, &p.College.Name,
@@ -82,18 +83,19 @@ func (r *ProgramRepository) GetAll(search, sortBy, order string, page, pageSize 
 		SELECT COUNT(*)
 		FROM   program p
 		JOIN   college c ON p.college_code = c.code
-		WHERE  p.name ILIKE $1
+		WHERE  (p.name ILIKE $1
 		OR     p.code ILIKE $1
-		OR     c.name ILIKE $1
-	`, pattern).Scan(&total); err != nil {
+		OR     c.name ILIKE $1)
+		AND    ($2 = '' OR p.college_code = $2)
+	`, pattern, collegeCode).Scan(&total); err != nil {
 		return nil, 0, fmt.Errorf("count programs: %w", err)
 	}
 
 	return programs, total, nil
 }
 
-func (r *ProgramRepository) GetByCode(code string) (models.Program, error) {
-	var p models.Program
+func (r *ProgramRepository) GetByCode(code string) (Program, error) {
+	var p Program
 	if err := r.pool.QueryRow(r.ctx(), `
 		SELECT p.code, p.name, p.college_code,
 		       c.code, c.name
@@ -104,14 +106,14 @@ func (r *ProgramRepository) GetByCode(code string) (models.Program, error) {
 		&p.Code, &p.Name, &p.CollegeCode,
 		&p.College.Code, &p.College.Name,
 	); err != nil {
-		return models.Program{}, fmt.Errorf("GetByCode %s: %w", code, err)
+		return Program{}, fmt.Errorf("GetByCode %s: %w", code, err)
 	}
 	return p, nil
 }
 
 // mutations
 
-func (r *ProgramRepository) Create(p models.Program) error {
+func (r *ProgramRepository) Create(p Program) error {
 	if _, err := r.pool.Exec(r.ctx(), `
 		INSERT INTO program (code, name, college_code)
 		VALUES ($1, $2, $3)
@@ -121,7 +123,7 @@ func (r *ProgramRepository) Create(p models.Program) error {
 	return nil
 }
 
-func (r *ProgramRepository) Update(p models.Program) error {
+func (r *ProgramRepository) Update(p Program) error {
 	if _, err := r.pool.Exec(r.ctx(), `
 		UPDATE program
 		SET    name         = $1,

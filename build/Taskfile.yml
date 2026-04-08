@@ -114,6 +114,7 @@ tasks:
     dir: frontend
     deps:
       - task: install:frontend:deps
+      - task: generate:bindings
     cmds:
       - npm run dev -- --port {{.VITE_PORT}} --strictPort
 

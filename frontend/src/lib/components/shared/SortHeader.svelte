@@ -1,22 +1,33 @@
 <script lang="ts">
+  import type { AppMode } from '$lib/types/schema'
+
   type Props = {
     label: string
     sortBy: string
     order: string
     sortKey: string
+    headerClass?: string
+    mode?: AppMode
     onSort: (key: string) => void
   }
 
-  let { label, sortBy, order, sortKey, onSort }: Props = $props()
+  let { label, sortBy, order, sortKey, headerClass = '', mode = 'light', onSort }: Props = $props()
+
+  let active = $derived(sortBy === sortKey)
 </script>
 
-<th class="whitespace-nowrap px-3 py-2 text-left text-xs font-semibold text-slate-900">
+<th class="ssis-col-header {headerClass} px-4 py-3 text-left">
   <button
     type="button"
-    class="inline-flex items-center gap-1 text-left hover:text-slate-700"
+    class="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider transition
+      {active ? 'text-(--accent)' : 'text-(--text-muted) hover:text-(--text-primary)'}"
     onclick={() => onSort(sortKey)}
   >
-    <span>{label}</span>
-    <span class="text-xs text-slate-500">{sortBy === sortKey ? (order === 'ASC' ? '↑' : '↓') : ''}</span>
+    {label}
+    {#if active}
+      <span class="text-(--accent)">{order === 'ASC' ? '↑' : '↓'}</span>
+    {:else}
+      <span class="text-(--text-muted)">↕</span>
+    {/if}
   </button>
 </th>
