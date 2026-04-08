@@ -44,7 +44,7 @@ func CreateTables(pool *pgxpool.Pool) error {
 		CREATE TABLE IF NOT EXISTS program (
 			code         VARCHAR(20)  PRIMARY KEY,
 			name         VARCHAR(255) NOT NULL,
-			college_code VARCHAR(20)  NOT NULL REFERENCES college(code)
+			college_code VARCHAR(20)  REFERENCES college(code) ON DELETE SET NULL
 		);
 
 		CREATE TABLE IF NOT EXISTS student (
@@ -53,8 +53,28 @@ func CreateTables(pool *pgxpool.Pool) error {
 			last_name    VARCHAR(100) NOT NULL,
 			year         INT          NOT NULL CHECK (year BETWEEN 1 AND 4),
 			gender       VARCHAR(10)  NOT NULL,
-			program_code VARCHAR(20)  NOT NULL REFERENCES program(code)
+			program_code VARCHAR(20)  REFERENCES program(code) ON DELETE SET NULL
 		);
+
+		ALTER TABLE IF EXISTS program
+			ALTER COLUMN college_code DROP NOT NULL;
+
+		ALTER TABLE IF EXISTS student
+			ALTER COLUMN program_code DROP NOT NULL;
+
+		ALTER TABLE IF EXISTS program
+			DROP CONSTRAINT IF EXISTS program_college_code_fkey;
+
+		ALTER TABLE IF EXISTS program
+			ADD CONSTRAINT program_college_code_fkey
+			FOREIGN KEY (college_code) REFERENCES college(code) ON DELETE SET NULL;
+
+		ALTER TABLE IF EXISTS student
+			DROP CONSTRAINT IF EXISTS student_program_code_fkey;
+
+		ALTER TABLE IF EXISTS student
+			ADD CONSTRAINT student_program_code_fkey
+			FOREIGN KEY (program_code) REFERENCES program(code) ON DELETE SET NULL;
 	`)
 	return err
 }

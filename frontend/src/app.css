@@ -74,8 +74,8 @@
   --danger: #c43a3a;
   --danger-hover: #a82e2e;
   --danger-dim: rgba(196, 58, 58, 0.08);
-  --modal-overlay: rgba(0, 0, 0, 0.55);
-  --modal-backdrop-blur: 8px;
+  --modal-overlay: rgba(0, 0, 0, 0.4);
+  --modal-backdrop-blur: 14px;
   --modal-border: #c8d3e8;
   --modal-bg: #ffffff;
   --modal-shadow: 0 8px 32px rgba(10, 22, 60, 0.16);
@@ -126,8 +126,8 @@
   --danger: #e05252;
   --danger-hover: #c94444;
   --danger-dim: rgba(224, 82, 82, 0.12);
-  --modal-overlay: rgba(3, 8, 20, 0.62);
-  --modal-backdrop-blur: 10px;
+  --modal-overlay: rgba(3, 8, 20, 0.5);
+  --modal-backdrop-blur: 16px;
   --modal-border: #30456f;
   --modal-bg: #111827;
   --modal-shadow: 0 22px 64px rgba(0, 0, 0, 0.58);
@@ -748,10 +748,11 @@ body {
   background: transparent;
 }
 
-.modal.modal-open .modal-backdrop {
+.modal.modal-open .modal-backdrop,
+.modal.modal-open .ssis-modal-backdrop {
   background: var(--modal-overlay);
-  backdrop-filter: blur(var(--modal-backdrop-blur));
-  -webkit-backdrop-filter: blur(var(--modal-backdrop-blur));
+  backdrop-filter: blur(var(--modal-backdrop-blur)) saturate(135%);
+  -webkit-backdrop-filter: blur(var(--modal-backdrop-blur)) saturate(135%);
 }
 
 .ssis-modal-box {

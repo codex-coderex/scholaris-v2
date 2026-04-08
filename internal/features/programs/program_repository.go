@@ -47,10 +47,10 @@ func (r *ProgramRepository) GetAll(search, sortBy, order string, page, pageSize 
 	sortOrder := utils.NormalizeSortOrder(order)
 
 	query := fmt.Sprintf(`
-		SELECT p.code, p.name, p.college_code,
-		       c.code, c.name
+		SELECT p.code, p.name, COALESCE(p.college_code, ''),
+		       COALESCE(c.code, ''), COALESCE(c.name, '')
 		FROM   program p
-		JOIN   college c ON p.college_code = c.code
+		LEFT JOIN college c ON p.college_code = c.code
 		WHERE  (p.name ILIKE $1
 		OR     p.code ILIKE $1
 		OR     c.name ILIKE $1)
@@ -82,7 +82,7 @@ func (r *ProgramRepository) GetAll(search, sortBy, order string, page, pageSize 
 	if err = r.pool.QueryRow(r.ctx(), `
 		SELECT COUNT(*)
 		FROM   program p
-		JOIN   college c ON p.college_code = c.code
+		LEFT JOIN college c ON p.college_code = c.code
 		WHERE  (p.name ILIKE $1
 		OR     p.code ILIKE $1
 		OR     c.name ILIKE $1)
@@ -97,10 +97,10 @@ func (r *ProgramRepository) GetAll(search, sortBy, order string, page, pageSize 
 func (r *ProgramRepository) GetByCode(code string) (Program, error) {
 	var p Program
 	if err := r.pool.QueryRow(r.ctx(), `
-		SELECT p.code, p.name, p.college_code,
-		       c.code, c.name
+		SELECT p.code, p.name, COALESCE(p.college_code, ''),
+		       COALESCE(c.code, ''), COALESCE(c.name, '')
 		FROM   program p
-		JOIN   college c ON p.college_code = c.code
+		LEFT JOIN college c ON p.college_code = c.code
 		WHERE  p.code = $1
 	`, code).Scan(
 		&p.Code, &p.Name, &p.CollegeCode,
