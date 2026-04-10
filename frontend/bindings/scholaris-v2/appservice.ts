@@ -7,17 +7,23 @@ import { Call as $Call, CancellablePromise as $CancellablePromise, Create as $Cr
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: Unused imports
-import * as models$0 from "./internal/models/models.js";
+import * as colleges$0 from "./internal/features/colleges/models.js";
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore: Unused imports
+import * as programs$0 from "./internal/features/programs/models.js";
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore: Unused imports
+import * as students$0 from "./internal/features/students/models.js";
 
-export function CreateCollege(c: models$0.College): $CancellablePromise<void> {
+export function CreateCollege(c: colleges$0.College): $CancellablePromise<void> {
     return $Call.ByID(4254705767, c);
 }
 
-export function CreateProgram(p: models$0.Program): $CancellablePromise<void> {
+export function CreateProgram(p: programs$0.Program): $CancellablePromise<void> {
     return $Call.ByID(955893694, p);
 }
 
-export function CreateStudent(s: models$0.Student): $CancellablePromise<void> {
+export function CreateStudent(s: students$0.Student): $CancellablePromise<void> {
     return $Call.ByID(2363770677, s);
 }
 
@@ -33,61 +39,61 @@ export function DeleteStudent(id: string): $CancellablePromise<void> {
     return $Call.ByID(1761927696, id);
 }
 
-export function GetCollege(code: string): $CancellablePromise<models$0.College> {
+export function GetCollege(code: string): $CancellablePromise<colleges$0.College> {
     return $Call.ByID(454079503, code).then(($result: any) => {
         return $$createType0($result);
     });
 }
 
-export function GetColleges(search: string, sortBy: string, order: string, page: number, pageSize: number): $CancellablePromise<[models$0.College[], number]> {
+export function GetColleges(search: string, sortBy: string, order: string, page: number, pageSize: number): $CancellablePromise<[colleges$0.College[], number]> {
     return $Call.ByID(390864692, search, sortBy, order, page, pageSize).then(($result: any) => {
         $result[0] = $$createType1($result[0]);
         return $result;
     });
 }
 
-export function GetProgram(code: string): $CancellablePromise<models$0.Program> {
+export function GetProgram(code: string): $CancellablePromise<programs$0.Program> {
     return $Call.ByID(3100903926, code).then(($result: any) => {
         return $$createType2($result);
     });
 }
 
-export function GetPrograms(search: string, sortBy: string, order: string, page: number, pageSize: number): $CancellablePromise<[models$0.Program[], number]> {
-    return $Call.ByID(2060123231, search, sortBy, order, page, pageSize).then(($result: any) => {
+export function GetPrograms(search: string, sortBy: string, order: string, page: number, pageSize: number, collegeCode: string): $CancellablePromise<[programs$0.Program[], number]> {
+    return $Call.ByID(2060123231, search, sortBy, order, page, pageSize, collegeCode).then(($result: any) => {
         $result[0] = $$createType3($result[0]);
         return $result;
     });
 }
 
-export function GetStudent(id: string): $CancellablePromise<models$0.Student> {
+export function GetStudent(id: string): $CancellablePromise<students$0.Student> {
     return $Call.ByID(4041872829, id).then(($result: any) => {
         return $$createType4($result);
     });
 }
 
-export function GetStudents(search: string, sortBy: string, order: string, page: number, pageSize: number): $CancellablePromise<[models$0.Student[], number]> {
+export function GetStudents(search: string, sortBy: string, order: string, page: number, pageSize: number): $CancellablePromise<[students$0.Student[], number]> {
     return $Call.ByID(243290954, search, sortBy, order, page, pageSize).then(($result: any) => {
         $result[0] = $$createType5($result[0]);
         return $result;
     });
 }
 
-export function UpdateCollege(c: models$0.College): $CancellablePromise<void> {
+export function UpdateCollege(c: colleges$0.College): $CancellablePromise<void> {
     return $Call.ByID(2846237960, c);
 }
 
-export function UpdateProgram(p: models$0.Program): $CancellablePromise<void> {
+export function UpdateProgram(p: programs$0.Program): $CancellablePromise<void> {
     return $Call.ByID(1413652501, p);
 }
 
-export function UpdateStudent(s: models$0.Student): $CancellablePromise<void> {
+export function UpdateStudent(s: students$0.Student): $CancellablePromise<void> {
     return $Call.ByID(2976167138, s);
 }
 
 // Private type creation functions
-const $$createType0 = models$0.College.createFrom;
+const $$createType0 = colleges$0.College.createFrom;
 const $$createType1 = $Create.Array($$createType0);
-const $$createType2 = models$0.Program.createFrom;
+const $$createType2 = programs$0.Program.createFrom;
 const $$createType3 = $Create.Array($$createType2);
-const $$createType4 = models$0.Student.createFrom;
+const $$createType4 = students$0.Student.createFrom;
 const $$createType5 = $Create.Array($$createType4);

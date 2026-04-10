@@ -1,10 +1,10 @@
-package repository
+package colleges
 
 import (
 	"context"
 	"fmt"
 
-	"scholaris-v2/internal/models"
+	"scholaris-v2/internal/shared/utils"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -25,10 +25,6 @@ func (r *CollegeRepository) ctx() context.Context {
 	return context.Background()
 }
 
-func searchPattern(s string) string {
-	return "%" + s + "%"
-}
-
 func normalizeCollegeSort(sortBy string) string {
 	switch sortBy {
 	case "code":
@@ -42,11 +38,11 @@ func normalizeCollegeSort(sortBy string) string {
 
 // queries
 
-func (r *CollegeRepository) GetAll(search, sortBy, order string, page, pageSize int) ([]models.College, int, error) {
+func (r *CollegeRepository) GetAll(search, sortBy, order string, page, pageSize int) ([]College, int, error) {
 	offset := (page - 1) * pageSize
-	pattern := searchPattern(search)
+	pattern := utils.SearchPattern(search)
 	sortColumn := normalizeCollegeSort(sortBy)
-	sortOrder := normalizeSortOrder(order)
+	sortOrder := utils.NormalizeSortOrder(order)
 
 	query := fmt.Sprintf(`
 		SELECT code, name
@@ -64,9 +60,9 @@ func (r *CollegeRepository) GetAll(search, sortBy, order string, page, pageSize 
 	}
 	defer rows.Close()
 
-	var colleges []models.College
+	var colleges []College
 	for rows.Next() {
-		var c models.College
+		var c College
 		if err := rows.Scan(&c.Code, &c.Name); err != nil {
 			return nil, 0, fmt.Errorf("scan college: %w", err)
 		}
@@ -84,21 +80,21 @@ func (r *CollegeRepository) GetAll(search, sortBy, order string, page, pageSize 
 	return colleges, total, nil
 }
 
-func (r *CollegeRepository) GetByCode(code string) (models.College, error) {
-	var c models.College
+func (r *CollegeRepository) GetByCode(code string) (College, error) {
+	var c College
 	if err := r.pool.QueryRow(r.ctx(), `
 		SELECT code, name
 		FROM   college
 		WHERE  code = $1
 	`, code).Scan(&c.Code, &c.Name); err != nil {
-		return models.College{}, fmt.Errorf("GetByCode %s: %w", code, err)
+		return College{}, fmt.Errorf("GetByCode %s: %w", code, err)
 	}
 	return c, nil
 }
 
 // mutations
 
-func (r *CollegeRepository) Create(c models.College) error {
+func (r *CollegeRepository) Create(c College) error {
 	if _, err := r.pool.Exec(r.ctx(), `
 		INSERT INTO college (code, name)
 		VALUES ($1, $2)
@@ -108,7 +104,7 @@ func (r *CollegeRepository) Create(c models.College) error {
 	return nil
 }
 
-func (r *CollegeRepository) Update(c models.College) error {
+func (r *CollegeRepository) Update(c College) error {
 	if _, err := r.pool.Exec(r.ctx(), `
 		UPDATE college
 		SET    name = $1

@@ -6,8 +6,9 @@ import (
 
 	"scholaris-v2/internal/config"
 	"scholaris-v2/internal/db"
-	"scholaris-v2/internal/models"
-	"scholaris-v2/internal/repository"
+	"scholaris-v2/internal/features/colleges"
+	"scholaris-v2/internal/features/programs"
+	"scholaris-v2/internal/features/students"
 
 	"github.com/wailsapp/wails/v3/pkg/application"
 )
@@ -15,9 +16,9 @@ import (
 // service
 
 type AppService struct {
-	collegeRepo *repository.CollegeRepository
-	programRepo *repository.ProgramRepository
-	studentRepo *repository.StudentRepository
+	collegeRepo *colleges.CollegeRepository
+	programRepo *programs.ProgramRepository
+	studentRepo *students.StudentRepository
 }
 
 func NewAppService() *AppService {
@@ -43,28 +44,28 @@ func (a *AppService) ServiceStartup(ctx context.Context, options application.Ser
 		return fmt.Errorf("seed: %w", err)
 	}
 
-	a.collegeRepo = repository.NewCollegeRepository(pool)
-	a.programRepo = repository.NewProgramRepository(pool)
-	a.studentRepo = repository.NewStudentRepository(pool)
+	a.collegeRepo = colleges.NewCollegeRepository(pool)
+	a.programRepo = programs.NewProgramRepository(pool)
+	a.studentRepo = students.NewStudentRepository(pool)
 
 	return nil
 }
 
 // colleges
 
-func (a *AppService) GetColleges(search, sortBy, order string, page, pageSize int) ([]models.College, int, error) {
+func (a *AppService) GetColleges(search, sortBy, order string, page, pageSize int) ([]colleges.College, int, error) {
 	return a.collegeRepo.GetAll(search, sortBy, order, page, pageSize)
 }
 
-func (a *AppService) GetCollege(code string) (models.College, error) {
+func (a *AppService) GetCollege(code string) (colleges.College, error) {
 	return a.collegeRepo.GetByCode(code)
 }
 
-func (a *AppService) CreateCollege(c models.College) error {
+func (a *AppService) CreateCollege(c colleges.College) error {
 	return a.collegeRepo.Create(c)
 }
 
-func (a *AppService) UpdateCollege(c models.College) error {
+func (a *AppService) UpdateCollege(c colleges.College) error {
 	return a.collegeRepo.Update(c)
 }
 
@@ -74,19 +75,19 @@ func (a *AppService) DeleteCollege(code string) error {
 
 // programs
 
-func (a *AppService) GetPrograms(search, sortBy, order string, page, pageSize int) ([]models.Program, int, error) {
-	return a.programRepo.GetAll(search, sortBy, order, page, pageSize)
+func (a *AppService) GetPrograms(search, sortBy, order string, page, pageSize int, collegeCode string) ([]programs.Program, int, error) {
+	return a.programRepo.GetAll(search, sortBy, order, page, pageSize, collegeCode)
 }
 
-func (a *AppService) GetProgram(code string) (models.Program, error) {
+func (a *AppService) GetProgram(code string) (programs.Program, error) {
 	return a.programRepo.GetByCode(code)
 }
 
-func (a *AppService) CreateProgram(p models.Program) error {
+func (a *AppService) CreateProgram(p programs.Program) error {
 	return a.programRepo.Create(p)
 }
 
-func (a *AppService) UpdateProgram(p models.Program) error {
+func (a *AppService) UpdateProgram(p programs.Program) error {
 	return a.programRepo.Update(p)
 }
 
@@ -96,19 +97,19 @@ func (a *AppService) DeleteProgram(code string) error {
 
 // students
 
-func (a *AppService) GetStudents(search, sortBy, order string, page, pageSize int) ([]models.Student, int, error) {
+func (a *AppService) GetStudents(search, sortBy, order string, page, pageSize int) ([]students.Student, int, error) {
 	return a.studentRepo.GetAll(search, sortBy, order, page, pageSize)
 }
 
-func (a *AppService) GetStudent(id string) (models.Student, error) {
+func (a *AppService) GetStudent(id string) (students.Student, error) {
 	return a.studentRepo.GetById(id)
 }
 
-func (a *AppService) CreateStudent(s models.Student) error {
+func (a *AppService) CreateStudent(s students.Student) error {
 	return a.studentRepo.Create(s)
 }
 
-func (a *AppService) UpdateStudent(s models.Student) error {
+func (a *AppService) UpdateStudent(s students.Student) error {
 	return a.studentRepo.Update(s)
 }
 

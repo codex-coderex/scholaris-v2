@@ -33,6 +33,8 @@ func main() {
 		Title:            "Scholaris V2",
 		Width:            1280,
 		Height:           800,
+		MinWidth:         1280,
+		MinHeight:        800,
 		BackgroundColour: application.NewRGB(27, 38, 54),
 		URL:              "/",
 	})
