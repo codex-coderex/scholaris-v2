@@ -28,7 +28,6 @@
   type Props = {
     open: boolean
     title: string
-    editStudentId: string
     studentIdYear: string
     studentIdSeq: string
     firstName: string
@@ -57,7 +56,6 @@
   let {
     open,
     title,
-    editStudentId,
     studentIdYear,
     studentIdSeq,
     firstName,
@@ -96,14 +94,13 @@
     { code: 'Other', name: 'Other' }
   ]
 
+  let isEditMode = $derived(title.toLowerCase().includes('edit'))
   let selectedYearLabel = $derived(yearOptions.find((option) => option.code === year)?.name ?? '')
   let selectedGenderLabel = $derived(genderOptions.find((option) => option.code === gender)?.name ?? '')
 </script>
 
 <Modal {open} {title} onClose={onClose} size="lg">
   <div class="space-y-4">
-    <input type="hidden" value={editStudentId} />
-
     <div class="grid gap-4 sm:grid-cols-[120px_minmax(0,1fr)]">
       <label class="form-control w-full gap-2">
         <span class="label-text text-[0.78rem] font-semibold uppercase tracking-[0.08em] text-(--text-muted)">Student ID Year</span>
@@ -111,6 +108,7 @@
           class="input input-bordered w-full bg-(--bg-base) border-(--border) text-(--text-primary) focus:border-(--accent) focus:outline-none"
           value={studentIdYear}
           maxlength="4"
+          disabled={isEditMode}
           placeholder="2026"
           oninput={(event) => {
             onStudentIdYearInput((event.currentTarget as HTMLInputElement).value)
@@ -124,6 +122,7 @@
           class="input input-bordered w-full bg-(--bg-base) border-(--border) text-(--text-primary) focus:border-(--accent) focus:outline-none"
           value={studentIdSeq}
           maxlength="4"
+          disabled={isEditMode}
           placeholder="0001"
           oninput={(event) => {
             onStudentIdSeqInput((event.currentTarget as HTMLInputElement).value)

@@ -22,15 +22,15 @@ export class CollegesViewModel {
   formOpen = $state(false)
   confirmOpen = $state(false)
   deleteTarget = $state<CollegeRow | null>(null)
-  editCollegeCode = $state('')
 
   code = $state('')
   name = $state('')
   formError = $state('')
 
+  searchDebounceTimer: ReturnType<typeof setTimeout> | null = null
+
   openAdd() {
     this.formMode = 'create'
-    this.editCollegeCode = ''
     this.code = ''
     this.name = ''
     this.formError = ''
@@ -39,7 +39,6 @@ export class CollegesViewModel {
 
   openEdit(college: CollegeRow) {
     this.formMode = 'edit'
-    this.editCollegeCode = college.code
     this.code = college.code
     this.name = college.name
     this.formError = ''
@@ -105,7 +104,15 @@ export class CollegesViewModel {
 
   handleSearch(value: string) {
     this.query.setSearch(value)
-    void this.load()
+
+    if (this.searchDebounceTimer) {
+      clearTimeout(this.searchDebounceTimer)
+    }
+
+    this.searchDebounceTimer = setTimeout(() => {
+      this.searchDebounceTimer = null
+      void this.load()
+    }, 250)
   }
 
   previousPage() {
@@ -115,19 +122,6 @@ export class CollegesViewModel {
 
   nextPage() {
     this.query.nextPage()
-    void this.load()
-  }
-
-  goToPage(nextPageNumber: number) {
-    this.query.goToPage(nextPageNumber)
-    void this.load()
-  }
-
-  handlePageJump(event: KeyboardEvent) {
-    const nextPageNumber = this.query.parsePageJump(event)
-    if (!nextPageNumber) return
-
-    this.query.goToPage(nextPageNumber)
     void this.load()
   }
 
@@ -159,7 +153,7 @@ export class CollegesViewModel {
     })
 
     try {
-      if (this.formMode === 'edit' && this.editCollegeCode) {
+      if (this.formMode === 'edit') {
         await UpdateCollege(payload)
         pushToast(`College ${this.code.trim()} updated`, 'success')
       } else {

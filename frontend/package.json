@@ -12,7 +12,7 @@
     "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch"
   },
   "dependencies": {
-    "@wailsio/runtime": "latest",
+    "@wailsio/runtime": "3.0.0-alpha.79",
     "lucide-svelte": "^1.0.1"
   },
   "devDependencies": {

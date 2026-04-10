@@ -109,11 +109,11 @@
 
       <main class="mt-6">
         {#if activeTab === 'students'}
-          <StudentsSection bind:this={studentsSection} mode={mode} />
+          <StudentsSection bind:this={studentsSection} />
         {:else if activeTab === 'programs'}
-          <ProgramsSection bind:this={programsSection} mode={mode} />
+          <ProgramsSection bind:this={programsSection} />
         {:else}
-          <CollegesSection bind:this={collegesSection} mode={mode} />
+          <CollegesSection bind:this={collegesSection} />
         {/if}
       </main>
     </section>

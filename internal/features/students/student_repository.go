@@ -1,7 +1,6 @@
 package students
 
 import (
-	"context"
 	"fmt"
 
 	"scholaris-v2/internal/shared/utils"
@@ -17,12 +16,6 @@ type StudentRepository struct {
 
 func NewStudentRepository(pool *pgxpool.Pool) *StudentRepository {
 	return &StudentRepository{pool: pool}
-}
-
-// helpers
-
-func (r *StudentRepository) ctx() context.Context {
-	return context.Background()
 }
 
 func normalizeStudentSort(sortBy string) string {
@@ -49,6 +42,9 @@ func normalizeStudentSort(sortBy string) string {
 // queries
 
 func (r *StudentRepository) GetAll(search, sortBy, order string, page, pageSize int) ([]Student, int, error) {
+	ctx, cancel := utils.NewDBContext()
+	defer cancel()
+
 	offset := (page - 1) * pageSize
 	pattern := utils.SearchPattern(search)
 	sortColumn := normalizeStudentSort(sortBy)
@@ -57,7 +53,7 @@ func (r *StudentRepository) GetAll(search, sortBy, order string, page, pageSize 
 	query := fmt.Sprintf(`
 		SELECT s.id, s.first_name, s.last_name,
 		       s.year, s.gender, COALESCE(s.program_code, ''),
-		       COALESCE(p.code, ''), COALESCE(p.name, ''),
+		       COALESCE(p.code, ''), COALESCE(p.name, ''), COALESCE(p.college_code, ''),
 		       COALESCE(c.code, ''), COALESCE(c.name, '')
 		FROM   student s
 		LEFT JOIN program p ON s.program_code = p.code
@@ -72,7 +68,7 @@ func (r *StudentRepository) GetAll(search, sortBy, order string, page, pageSize 
 		OFFSET $3
 	`, sortColumn, sortOrder)
 
-	rows, err := r.pool.Query(r.ctx(), query, pattern, pageSize, offset)
+	rows, err := r.pool.Query(ctx, query, pattern, pageSize, offset)
 	if err != nil {
 		return nil, 0, fmt.Errorf("GetAll students: %w", err)
 	}
@@ -84,7 +80,7 @@ func (r *StudentRepository) GetAll(search, sortBy, order string, page, pageSize 
 		if err := rows.Scan(
 			&s.Id, &s.FirstName, &s.LastName,
 			&s.Year, &s.Gender, &s.ProgramCode,
-			&s.Program.Code, &s.Program.Name,
+			&s.Program.Code, &s.Program.Name, &s.Program.CollegeCode,
 			&s.Program.College.Code, &s.Program.College.Name,
 		); err != nil {
 			return nil, 0, fmt.Errorf("scan student: %w", err)
@@ -92,8 +88,12 @@ func (r *StudentRepository) GetAll(search, sortBy, order string, page, pageSize 
 		students = append(students, s)
 	}
 
+	if err := rows.Err(); err != nil {
+		return nil, 0, fmt.Errorf("iterate students: %w", err)
+	}
+
 	var total int
-	if err = r.pool.QueryRow(r.ctx(), `
+	if err = r.pool.QueryRow(ctx, `
 		SELECT COUNT(*)
 		FROM   student s
 		LEFT JOIN program p ON s.program_code = p.code
@@ -110,32 +110,13 @@ func (r *StudentRepository) GetAll(search, sortBy, order string, page, pageSize 
 	return students, total, nil
 }
 
-func (r *StudentRepository) GetById(id string) (Student, error) {
-	var s Student
-	if err := r.pool.QueryRow(r.ctx(), `
-		SELECT s.id, s.first_name, s.last_name,
-		       s.year, s.gender, COALESCE(s.program_code, ''),
-		       COALESCE(p.code, ''), COALESCE(p.name, ''),
-		       COALESCE(c.code, ''), COALESCE(c.name, '')
-		FROM   student s
-		LEFT JOIN program p ON s.program_code = p.code
-		LEFT JOIN college c ON p.college_code = c.code
-		WHERE  s.id = $1
-	`, id).Scan(
-		&s.Id, &s.FirstName, &s.LastName,
-		&s.Year, &s.Gender, &s.ProgramCode,
-		&s.Program.Code, &s.Program.Name,
-		&s.Program.College.Code, &s.Program.College.Name,
-	); err != nil {
-		return Student{}, fmt.Errorf("GetById %s: %w", id, err)
-	}
-	return s, nil
-}
-
 // mutations
 
 func (r *StudentRepository) Create(s Student) error {
-	if _, err := r.pool.Exec(r.ctx(), `
+	ctx, cancel := utils.NewDBContext()
+	defer cancel()
+
+	if _, err := r.pool.Exec(ctx, `
 		INSERT INTO student (id, first_name, last_name, year, gender, program_code)
 		VALUES ($1, $2, $3, $4, $5, $6)
 	`, s.Id, s.FirstName, s.LastName, s.Year, s.Gender, s.ProgramCode); err != nil {
@@ -145,7 +126,10 @@ func (r *StudentRepository) Create(s Student) error {
 }
 
 func (r *StudentRepository) Update(s Student) error {
-	if _, err := r.pool.Exec(r.ctx(), `
+	ctx, cancel := utils.NewDBContext()
+	defer cancel()
+
+	tag, err := r.pool.Exec(ctx, `
 		UPDATE student
 		SET    first_name   = $1,
 		       last_name    = $2,
@@ -153,18 +137,33 @@ func (r *StudentRepository) Update(s Student) error {
 		       gender       = $4,
 		       program_code = $5
 		WHERE  id           = $6
-	`, s.FirstName, s.LastName, s.Year, s.Gender, s.ProgramCode, s.Id); err != nil {
+	`, s.FirstName, s.LastName, s.Year, s.Gender, s.ProgramCode, s.Id)
+	if err != nil {
 		return fmt.Errorf("update student %s: %w", s.Id, err)
 	}
+
+	if tag.RowsAffected() == 0 {
+		return fmt.Errorf("update student %s: no matching record", s.Id)
+	}
+
 	return nil
 }
 
 func (r *StudentRepository) Delete(id string) error {
-	if _, err := r.pool.Exec(r.ctx(), `
+	ctx, cancel := utils.NewDBContext()
+	defer cancel()
+
+	tag, err := r.pool.Exec(ctx, `
 		DELETE FROM student
 		WHERE  id = $1
-	`, id); err != nil {
+	`, id)
+	if err != nil {
 		return fmt.Errorf("delete student %s: %w", id, err)
 	}
+
+	if tag.RowsAffected() == 0 {
+		return fmt.Errorf("delete student %s: no matching record", id)
+	}
+
 	return nil
 }

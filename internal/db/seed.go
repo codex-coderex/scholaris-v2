@@ -6,6 +6,7 @@ import (
 	"math/rand"
 	"time"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -113,17 +114,30 @@ var programs = []struct {
 // seed
 
 func Seed(pool *pgxpool.Pool) error {
-	ctx := context.Background()
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
+	defer cancel()
+
+	tx, err := pool.BeginTx(ctx, pgx.TxOptions{})
+	if err != nil {
+		return fmt.Errorf("seed begin transaction: %w", err)
+	}
+
+	committed := false
+	defer func() {
+		if !committed {
+			_ = tx.Rollback(ctx)
+		}
+	}()
 
 	// colleges and programs are seeded only on first run so user deletes persist.
 	var collegeCount int
-	if err := pool.QueryRow(ctx, `SELECT COUNT(*) FROM college`).Scan(&collegeCount); err != nil {
+	if err := tx.QueryRow(ctx, `SELECT COUNT(*) FROM college`).Scan(&collegeCount); err != nil {
 		return fmt.Errorf("seed college count check: %w", err)
 	}
 
 	if collegeCount == 0 {
 		for _, c := range colleges {
-			if _, err := pool.Exec(ctx, `
+			if _, err := tx.Exec(ctx, `
 				INSERT INTO college (code, name)
 				VALUES ($1, $2)
 			`, c.code, c.name); err != nil {
@@ -132,7 +146,7 @@ func Seed(pool *pgxpool.Pool) error {
 		}
 
 		for _, p := range programs {
-			if _, err := pool.Exec(ctx, `
+			if _, err := tx.Exec(ctx, `
 				INSERT INTO program (code, name, college_code)
 				VALUES ($1, $2, $3)
 			`, p.code, p.name, p.collegeCode); err != nil {
@@ -143,7 +157,7 @@ func Seed(pool *pgxpool.Pool) error {
 
 	// students — only seed if table is empty
 	var count int
-	if err := pool.QueryRow(ctx, `SELECT COUNT(*) FROM student`).Scan(&count); err != nil {
+	if err := tx.QueryRow(ctx, `SELECT COUNT(*) FROM student`).Scan(&count); err != nil {
 		return fmt.Errorf("seed count check: %w", err)
 	}
 
@@ -153,16 +167,17 @@ func Seed(pool *pgxpool.Pool) error {
 			programCodes[i] = p.code
 		}
 
+		currentYear := time.Now().Year()
+
 		for i := range 7500 {
-			currentYear := time.Now().Year()
-			id := fmt.Sprintf("%04d-%04d", rand.Intn(currentYear-1968+1)+1968, rand.Intn(currentYear-1968+1)+1968)
+			id := fmt.Sprintf("%04d-%04d", rand.Intn(currentYear-1968+1)+1968, rand.Intn(10000))
 			firstName := firstNames[rand.Intn(len(firstNames))]
 			lastName := lastNames[rand.Intn(len(lastNames))]
 			year := rand.Intn(4) + 1
 			gender := genders[rand.Intn(len(genders))]
 			programCode := programCodes[rand.Intn(len(programCodes))]
 
-			if _, err := pool.Exec(ctx, `
+			if _, err := tx.Exec(ctx, `
 				INSERT INTO student (id, first_name, last_name, year, gender, program_code)
 				VALUES ($1, $2, $3, $4, $5, $6)
 				ON CONFLICT (id) DO NOTHING
@@ -171,6 +186,11 @@ func Seed(pool *pgxpool.Pool) error {
 			}
 		}
 	}
+
+	if err := tx.Commit(ctx); err != nil {
+		return fmt.Errorf("seed commit: %w", err)
+	}
+	committed = true
 
 	return nil
 }

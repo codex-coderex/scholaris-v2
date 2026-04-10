@@ -1,14 +1,11 @@
 <script lang="ts">
-  import type { AppMode } from '$lib/types/schema'
-
   type Props = {
     search: string
     placeholder: string
-    mode?: AppMode
     onSearch: (value: string) => void
   }
 
-  let { search, placeholder, mode = 'light', onSearch }: Props = $props()
+  let { search, placeholder, onSearch }: Props = $props()
 </script>
 
 <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">

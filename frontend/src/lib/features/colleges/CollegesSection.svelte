@@ -1,7 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte'
 
-  import type { AppMode } from '$lib/types/schema'
   import { setupResponsivePageSize } from '$lib/shared/page-size'
   import { CollegesViewModel } from '$lib/viewmodels/colleges.vm.svelte'
 
@@ -11,12 +10,6 @@
 
   import CollegesTable from './CollegesTable.svelte'
   import CollegeFormModal from './CollegeFormModal.svelte'
-
-  type Props = {
-    mode?: AppMode
-  }
-
-  let { mode = 'light' }: Props = $props()
 
   const vm = new CollegesViewModel()
 
@@ -37,7 +30,6 @@
 
 <div class="space-y-5 font-dmsans">
   <SearchToolbar
-    {mode}
     search={vm.query.search}
     placeholder="Search colleges..."
     onSearch={(value) => vm.handleSearch(value)}
@@ -49,9 +41,9 @@
 
   <div class="ssis-table-panel">
     <CollegesTable
-      {mode}
       rows={vm.colleges}
       loading={vm.loading}
+      emptyMessage={vm.error.toLowerCase().includes('no database') ? 'No database found. Start PostgreSQL and reload the app.' : 'No colleges found'}
       sortBy={vm.query.sortBy}
       order={vm.query.order}
       onSort={(column) => vm.setSort(column)}
@@ -60,15 +52,12 @@
     />
 
     <Pagination
-      {mode}
       page={vm.query.page}
       totalPages={vm.query.totalPages}
       total={vm.query.total}
       busy={vm.loading || vm.isPageTransitioning}
       onPrevious={() => vm.previousPage()}
       onNext={() => vm.nextPage()}
-      onGoToPage={(pageNumber) => vm.goToPage(pageNumber)}
-      onJump={(event) => vm.handlePageJump(event)}
     />
   </div>
 

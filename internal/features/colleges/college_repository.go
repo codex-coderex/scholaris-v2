@@ -1,7 +1,6 @@
 package colleges
 
 import (
-	"context"
 	"fmt"
 
 	"scholaris-v2/internal/shared/utils"
@@ -19,12 +18,6 @@ func NewCollegeRepository(pool *pgxpool.Pool) *CollegeRepository {
 	return &CollegeRepository{pool: pool}
 }
 
-// helpers
-
-func (r *CollegeRepository) ctx() context.Context {
-	return context.Background()
-}
-
 func normalizeCollegeSort(sortBy string) string {
 	switch sortBy {
 	case "code":
@@ -39,6 +32,9 @@ func normalizeCollegeSort(sortBy string) string {
 // queries
 
 func (r *CollegeRepository) GetAll(search, sortBy, order string, page, pageSize int) ([]College, int, error) {
+	ctx, cancel := utils.NewDBContext()
+	defer cancel()
+
 	offset := (page - 1) * pageSize
 	pattern := utils.SearchPattern(search)
 	sortColumn := normalizeCollegeSort(sortBy)
@@ -54,7 +50,7 @@ func (r *CollegeRepository) GetAll(search, sortBy, order string, page, pageSize 
 		OFFSET $3
 	`, sortColumn, sortOrder)
 
-	rows, err := r.pool.Query(r.ctx(), query, pattern, pageSize, offset)
+	rows, err := r.pool.Query(ctx, query, pattern, pageSize, offset)
 	if err != nil {
 		return nil, 0, fmt.Errorf("GetAll colleges: %w", err)
 	}
@@ -69,8 +65,12 @@ func (r *CollegeRepository) GetAll(search, sortBy, order string, page, pageSize 
 		colleges = append(colleges, c)
 	}
 
+	if err := rows.Err(); err != nil {
+		return nil, 0, fmt.Errorf("iterate colleges: %w", err)
+	}
+
 	var total int
-	if err = r.pool.QueryRow(r.ctx(),
+	if err = r.pool.QueryRow(ctx,
 		`SELECT COUNT(*) FROM college WHERE name ILIKE $1 OR code ILIKE $1`,
 		pattern,
 	).Scan(&total); err != nil {
@@ -80,22 +80,13 @@ func (r *CollegeRepository) GetAll(search, sortBy, order string, page, pageSize 
 	return colleges, total, nil
 }
 
-func (r *CollegeRepository) GetByCode(code string) (College, error) {
-	var c College
-	if err := r.pool.QueryRow(r.ctx(), `
-		SELECT code, name
-		FROM   college
-		WHERE  code = $1
-	`, code).Scan(&c.Code, &c.Name); err != nil {
-		return College{}, fmt.Errorf("GetByCode %s: %w", code, err)
-	}
-	return c, nil
-}
-
 // mutations
 
 func (r *CollegeRepository) Create(c College) error {
-	if _, err := r.pool.Exec(r.ctx(), `
+	ctx, cancel := utils.NewDBContext()
+	defer cancel()
+
+	if _, err := r.pool.Exec(ctx, `
 		INSERT INTO college (code, name)
 		VALUES ($1, $2)
 	`, c.Code, c.Name); err != nil {
@@ -105,22 +96,40 @@ func (r *CollegeRepository) Create(c College) error {
 }
 
 func (r *CollegeRepository) Update(c College) error {
-	if _, err := r.pool.Exec(r.ctx(), `
+	ctx, cancel := utils.NewDBContext()
+	defer cancel()
+
+	tag, err := r.pool.Exec(ctx, `
 		UPDATE college
 		SET    name = $1
 		WHERE  code = $2
-	`, c.Name, c.Code); err != nil {
+	`, c.Name, c.Code)
+	if err != nil {
 		return fmt.Errorf("update college %s: %w", c.Code, err)
 	}
+
+	if tag.RowsAffected() == 0 {
+		return fmt.Errorf("update college %s: no matching record", c.Code)
+	}
+
 	return nil
 }
 
 func (r *CollegeRepository) Delete(code string) error {
-	if _, err := r.pool.Exec(r.ctx(), `
+	ctx, cancel := utils.NewDBContext()
+	defer cancel()
+
+	tag, err := r.pool.Exec(ctx, `
 		DELETE FROM college
 		WHERE  code = $1
-	`, code); err != nil {
+	`, code)
+	if err != nil {
 		return fmt.Errorf("delete college %s: %w", code, err)
 	}
+
+	if tag.RowsAffected() == 0 {
+		return fmt.Errorf("delete college %s: no matching record", code)
+	}
+
 	return nil
 }

@@ -38,6 +38,8 @@
     onSave,
     onClose
   }: Props = $props()
+
+  let isEditMode = $derived(title.toLowerCase().includes('edit'))
 </script>
 
 <Modal {open} {title} onClose={onClose} size="lg">
@@ -47,6 +49,7 @@
       <input
         class="input input-bordered w-full bg-(--bg-base) border-(--border) text-(--text-primary) focus:border-(--accent) focus:outline-none"
         value={code}
+        disabled={isEditMode}
         placeholder="BSCS"
         oninput={(event) => {
           onCodeInput((event.currentTarget as HTMLInputElement).value)

@@ -1,10 +1,10 @@
 package db
 
 import (
-	"context"
 	"fmt"
 
 	"scholaris-v2/internal/config"
+	"scholaris-v2/internal/shared/utils"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -12,12 +12,18 @@ import (
 // connect
 
 func Init(cfg config.Config) (*pgxpool.Pool, error) {
-	pool, err := pgxpool.New(context.Background(), cfg.GetDBConnectionString())
+	ctx, cancel := utils.NewDBContext()
+	defer cancel()
+
+	pool, err := pgxpool.New(ctx, cfg.GetDBConnectionString())
 	if err != nil {
 		return nil, fmt.Errorf("failed to create connection pool: %w", err)
 	}
 
-	if err := pool.Ping(context.Background()); err != nil {
+	pingCtx, pingCancel := utils.NewDBContext()
+	defer pingCancel()
+
+	if err := pool.Ping(pingCtx); err != nil {
 		return nil, fmt.Errorf("failed to connect to database: %w", err)
 	}
 
@@ -35,7 +41,10 @@ func Close(pool *pgxpool.Pool) {
 // create tables
 
 func CreateTables(pool *pgxpool.Pool) error {
-	_, err := pool.Exec(context.Background(), `
+	ctx, cancel := utils.NewDBContext()
+	defer cancel()
+
+	_, err := pool.Exec(ctx, `
 		CREATE TABLE IF NOT EXISTS college (
 			code VARCHAR(20)  PRIMARY KEY,
 			name VARCHAR(255) NOT NULL

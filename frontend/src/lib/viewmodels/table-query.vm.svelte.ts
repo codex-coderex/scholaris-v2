@@ -46,22 +46,4 @@ export class TableQueryViewModel {
   nextPage() {
     this.page = Math.min(this.totalPages, this.page + 1)
   }
-
-  goToPage(nextPageNumber: number) {
-    this.page = Math.min(Math.max(nextPageNumber, 1), this.totalPages)
-  }
-
-  parsePageJump(event: KeyboardEvent) {
-    if (event.key !== 'Enter') return null
-
-    const input = event.currentTarget as HTMLInputElement
-    const nextPageNumber = Number(input.value)
-
-    if (!nextPageNumber || nextPageNumber < 1 || nextPageNumber > this.totalPages) {
-      input.value = ''
-      return null
-    }
-
-    return nextPageNumber
-  }
 }

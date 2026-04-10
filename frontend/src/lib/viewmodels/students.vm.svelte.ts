@@ -36,7 +36,6 @@ export class StudentsViewModel {
   formOpen = $state(false)
   confirmOpen = $state(false)
   deleteTarget = $state<StudentRow | null>(null)
-  editStudentId = $state('')
 
   studentIdYear = $state('')
   studentIdSeq = $state('')
@@ -51,10 +50,11 @@ export class StudentsViewModel {
   selectedCollege = $derived(this.colleges.find((college) => college.code === this.selectedCollegeCode) ?? null)
   selectedProgram = $derived(this.programs.find((program) => program.code === this.selectedProgramCode) ?? null)
 
-  collegeOptions = $derived(this.colleges)
   programOptions = $derived(
     this.programs.filter((program) => !this.selectedCollegeCode || program.college_code === this.selectedCollegeCode)
   )
+
+  searchDebounceTimer: ReturnType<typeof setTimeout> | null = null
 
   selectedCollegeLabel = $derived(
     this.selectedCollege
@@ -67,14 +67,12 @@ export class StudentsViewModel {
 
   openAdd() {
     this.formMode = 'create'
-    this.editStudentId = ''
     this.resetForm()
     this.formOpen = true
   }
 
   openEdit(student: StudentRow) {
     this.formMode = 'edit'
-    this.editStudentId = student.id
 
     const parts = student.id.split('-')
     this.studentIdYear = parts[0] ?? ''
@@ -121,9 +119,15 @@ export class StudentsViewModel {
   }
 
   async loadOptions() {
-    const [programRows, collegeRows] = await Promise.all([fetchProgramOptions(), fetchCollegeOptions()])
-    this.programs = programRows
-    this.colleges = collegeRows
+    try {
+      const [programRows, collegeRows] = await Promise.all([fetchProgramOptions(), fetchCollegeOptions()])
+      this.programs = programRows
+      this.colleges = collegeRows
+    } catch (caught: unknown) {
+      this.programs = []
+      this.colleges = []
+      this.error = caught instanceof Error ? caught.message : 'Failed to load student options'
+    }
   }
 
   async load() {
@@ -170,7 +174,15 @@ export class StudentsViewModel {
 
   handleSearch(value: string) {
     this.query.setSearch(value)
-    void this.load()
+
+    if (this.searchDebounceTimer) {
+      clearTimeout(this.searchDebounceTimer)
+    }
+
+    this.searchDebounceTimer = setTimeout(() => {
+      this.searchDebounceTimer = null
+      void this.load()
+    }, 250)
   }
 
   previousPage() {
@@ -180,19 +192,6 @@ export class StudentsViewModel {
 
   nextPage() {
     this.query.nextPage()
-    void this.load()
-  }
-
-  goToPage(nextPageNumber: number) {
-    this.query.goToPage(nextPageNumber)
-    void this.load()
-  }
-
-  handlePageJump(event: KeyboardEvent) {
-    const nextPageNumber = this.query.parsePageJump(event)
-    if (!nextPageNumber) return
-
-    this.query.goToPage(nextPageNumber)
     void this.load()
   }
 
@@ -242,7 +241,7 @@ export class StudentsViewModel {
     })
 
     try {
-      if (this.formMode === 'edit' && this.editStudentId) {
+      if (this.formMode === 'edit') {
         await UpdateStudent(payload)
         pushToast(`Student ${id} updated`, 'success')
       } else {

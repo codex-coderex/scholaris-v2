@@ -1,17 +1,14 @@
 <script lang="ts">
-  import type { AppMode } from '$lib/types/schema'
-
   type Props = {
     label: string
     sortBy: string
     order: string
     sortKey: string
     headerClass?: string
-    mode?: AppMode
     onSort: (key: string) => void
   }
 
-  let { label, sortBy, order, sortKey, headerClass = '', mode = 'light', onSort }: Props = $props()
+  let { label, sortBy, order, sortKey, headerClass = '', onSort }: Props = $props()
 
   let active = $derived(sortBy === sortKey)
 </script>

@@ -15,12 +15,18 @@ type Config struct {
 	DBUser     string `json:"db_user"`
 	DBPassword string `json:"db_password"`
 	DBName     string `json:"db_name"`
+	DBSSLMode  string `json:"db_ssl_mode"`
 }
 
 func (c Config) GetDBConnectionString() string {
+	sslMode := c.DBSSLMode
+	if sslMode == "" {
+		sslMode = "prefer"
+	}
+
 	return fmt.Sprintf(
-		"host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
-		c.DBHost, c.DBPort, c.DBUser, c.DBPassword, c.DBName,
+		"host=%s port=%s user=%s password=%s dbname=%s sslmode=%s",
+		c.DBHost, c.DBPort, c.DBUser, c.DBPassword, c.DBName, sslMode,
 	)
 }
 
@@ -56,6 +62,7 @@ func Load() (Config, error) {
 		DBUser:     "postgres",
 		DBPassword: "postgres",
 		DBName:     "scholarisdb",
+		DBSSLMode:  "prefer",
 	}
 
 	data, err := os.ReadFile(resolveConfigPath())
@@ -63,7 +70,7 @@ func Load() (Config, error) {
 		return defaults, nil
 	}
 
-	var cfg Config
+	cfg := defaults
 	if err := json.Unmarshal(data, &cfg); err != nil {
 		return defaults, fmt.Errorf("invalid config.json: %w", err)
 	}

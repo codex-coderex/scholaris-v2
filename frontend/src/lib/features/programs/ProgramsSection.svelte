@@ -1,7 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte'
 
-  import type { AppMode } from '$lib/types/schema'
   import { setupResponsivePageSize } from '$lib/shared/page-size'
   import { ProgramsViewModel } from '$lib/viewmodels/programs.vm.svelte'
 
@@ -11,12 +10,6 @@
 
   import ProgramsTable from './ProgramsTable.svelte'
   import ProgramFormModal from './ProgramFormModal.svelte'
-
-  type Props = {
-    mode?: AppMode
-  }
-
-  let { mode = 'light' }: Props = $props()
 
   const vm = new ProgramsViewModel()
 
@@ -30,7 +23,7 @@
       () => void vm.load()
     )
 
-    void vm.loadOptions().then(() => vm.load())
+    void vm.loadOptions().finally(() => vm.load())
     return cleanup
   })
 </script>
@@ -39,7 +32,6 @@
   <div class="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
     <div class="flex-1 min-w-0">
       <SearchToolbar
-        {mode}
         search={vm.query.search}
         placeholder="Search programs..."
         onSearch={(value) => vm.handleSearch(value)}
@@ -54,6 +46,7 @@
         onchange={(event) => vm.handleCollegeFilter((event.currentTarget as HTMLSelectElement).value)}
       >
         <option value="">All Colleges</option>
+        <option value={vm.noCollegeFilterCode}>(No College)</option>
         {#each vm.colleges as college}
           <option value={college.code}>{college.code} — {college.name}</option>
         {/each}
@@ -67,9 +60,9 @@
 
   <div class="ssis-table-panel">
     <ProgramsTable
-      {mode}
       rows={vm.programs}
       loading={vm.loading}
+      emptyMessage={vm.error.toLowerCase().includes('no database') ? 'No database found. Start PostgreSQL and reload the app.' : 'No programs found'}
       sortBy={vm.query.sortBy}
       order={vm.query.order}
       onSort={(column) => vm.setSort(column)}
@@ -78,15 +71,12 @@
     />
 
     <Pagination
-      {mode}
       page={vm.query.page}
       totalPages={vm.query.totalPages}
       total={vm.query.total}
       busy={vm.loading || vm.isPageTransitioning}
       onPrevious={() => vm.previousPage()}
       onNext={() => vm.nextPage()}
-      onGoToPage={(pageNumber) => vm.goToPage(pageNumber)}
-      onJump={(event) => vm.handlePageJump(event)}
     />
   </div>
 

@@ -10,8 +10,7 @@
 		"sourceMap": true,
 		"strict": true,
         "types": ["node"],
-        "allowUnusedLabels": true,
-        "noUnusedLocals": false,
+		"noUnusedLocals": true,
         "moduleResolution": "bundler"
 	}
 	// Path aliases are handled by https://kit.svelte.dev/docs/configuration#alias

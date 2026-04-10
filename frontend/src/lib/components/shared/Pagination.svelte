@@ -1,19 +1,14 @@
 <script lang="ts">
-  import type { AppMode } from '$lib/types/schema'
-
   type Props = {
     page: number
     totalPages: number
     total: number
-    mode?: AppMode
     busy?: boolean
     onPrevious: () => void
     onNext: () => void
-    onGoToPage?: (pageNumber: number) => void
-    onJump?: (event: KeyboardEvent) => void
   }
 
-  let { page, totalPages, total, mode = 'light', busy = false, onPrevious, onNext, onGoToPage, onJump }: Props = $props()
+  let { page, totalPages, total, busy = false, onPrevious, onNext }: Props = $props()
 </script>
 
 <div class="ssis-pagination-bar text-sm text-(--text-muted)">
@@ -36,12 +31,8 @@
       ←
     </button>
 
-    <button
-      type="button"
-      disabled={busy}
+    <span
       class="ssis-pagination-current"
-      onclick={() => onGoToPage?.(page)}
-      onkeydown={onJump}
       aria-label={`Current page ${page} of ${totalPages}`}
       title={`Page ${page} of ${totalPages}`}
     >
@@ -52,7 +43,7 @@
           <path class="opacity-100" fill="currentColor" d="M4 12a8 8 0 018-8v3a5 5 0 00-5 5H4z"></path>
         </svg>
       {/if}
-    </button>
+    </span>
 
     <button
       type="button"

@@ -1,13 +1,10 @@
 <script lang="ts">
-  import type { AppMode } from '$lib/types/schema'
-
   type Props = {
-    mode?: AppMode
     onEdit?: () => void
     onDelete: () => void
   }
 
-  let { mode = 'light', onEdit = () => {}, onDelete }: Props = $props()
+  let { onEdit = () => {}, onDelete }: Props = $props()
 </script>
 
 <div class="flex items-center justify-center gap-2">

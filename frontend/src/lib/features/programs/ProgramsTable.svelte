@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { AppMode, ProgramRow } from '$lib/types/schema'
+  import type { ProgramRow } from '$lib/types/schema'
 
   import SortHeader from '$lib/components/shared/SortHeader.svelte'
   import TableShell from '$lib/components/shared/TableShell.svelte'
@@ -7,9 +7,9 @@
   import ActionsHeader from '$lib/components/shared/ActionsHeader.svelte'
 
   type Props = {
-    mode?: AppMode
     rows: ProgramRow[]
     loading: boolean
+    emptyMessage?: string
     sortBy: string
     order: 'ASC' | 'DESC'
     onSort: (column: string) => void
@@ -18,9 +18,9 @@
   }
 
   let {
-    mode = 'light',
     rows,
     loading,
+    emptyMessage = 'No programs found',
     sortBy,
     order,
     onSort,
@@ -34,7 +34,6 @@
     <thead>
       <tr class="ssis-thead border-b border-(--border)">
         <SortHeader
-          {mode}
           label="Code"
           sortBy={sortBy}
           order={order}
@@ -43,7 +42,6 @@
           onSort={onSort}
         />
         <SortHeader
-          {mode}
           label="Name"
           sortBy={sortBy}
           order={order}
@@ -56,13 +54,13 @@
     </thead>
 
     <tbody class="divide-y divide-(--border-subtle)">
-      <TableShell loading={loading} hasData={rows.length > 0} colspan={3} emptyMessage="No programs found">
+      <TableShell loading={loading} hasData={rows.length > 0} colspan={3} {emptyMessage}>
         {#each rows as program}
           <tr class="ssis-row transition-colors hover:bg-(--bg-hover)">
             <td class="ssis-cell-primary ssis-code-col-cell px-4 py-3"><span class="ssis-code-pill">{program.code}</span></td>
             <td class="ssis-cell-muted ssis-cell-clip ssis-name-col-cell px-4 py-3">{program.name}</td>
             <td class="ssis-action-cell px-4 py-3 text-center">
-              <RowActions mode={mode} onEdit={() => onEdit(program)} onDelete={() => onDelete(program)} />
+              <RowActions onEdit={() => onEdit(program)} onDelete={() => onDelete(program)} />
             </td>
           </tr>
         {/each}

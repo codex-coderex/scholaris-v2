@@ -39,12 +39,6 @@ export function DeleteStudent(id: string): $CancellablePromise<void> {
     return $Call.ByID(1761927696, id);
 }
 
-export function GetCollege(code: string): $CancellablePromise<colleges$0.College> {
-    return $Call.ByID(454079503, code).then(($result: any) => {
-        return $$createType0($result);
-    });
-}
-
 export function GetColleges(search: string, sortBy: string, order: string, page: number, pageSize: number): $CancellablePromise<[colleges$0.College[], number]> {
     return $Call.ByID(390864692, search, sortBy, order, page, pageSize).then(($result: any) => {
         $result[0] = $$createType1($result[0]);
@@ -52,22 +46,10 @@ export function GetColleges(search: string, sortBy: string, order: string, page:
     });
 }
 
-export function GetProgram(code: string): $CancellablePromise<programs$0.Program> {
-    return $Call.ByID(3100903926, code).then(($result: any) => {
-        return $$createType2($result);
-    });
-}
-
 export function GetPrograms(search: string, sortBy: string, order: string, page: number, pageSize: number, collegeCode: string): $CancellablePromise<[programs$0.Program[], number]> {
     return $Call.ByID(2060123231, search, sortBy, order, page, pageSize, collegeCode).then(($result: any) => {
         $result[0] = $$createType3($result[0]);
         return $result;
-    });
-}
-
-export function GetStudent(id: string): $CancellablePromise<students$0.Student> {
-    return $Call.ByID(4041872829, id).then(($result: any) => {
-        return $$createType4($result);
     });
 }
 

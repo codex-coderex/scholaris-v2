@@ -1,8 +1,8 @@
 package programs
 
 import (
-	"context"
 	"fmt"
+	"strings"
 
 	"scholaris-v2/internal/shared/utils"
 
@@ -15,14 +15,10 @@ type ProgramRepository struct {
 	pool *pgxpool.Pool
 }
 
+const noCollegeFilter = "__NO_COLLEGE__"
+
 func NewProgramRepository(pool *pgxpool.Pool) *ProgramRepository {
 	return &ProgramRepository{pool: pool}
-}
-
-// helpers
-
-func (r *ProgramRepository) ctx() context.Context {
-	return context.Background()
 }
 
 func normalizeProgramSort(sortBy string) string {
@@ -38,9 +34,21 @@ func normalizeProgramSort(sortBy string) string {
 	}
 }
 
+func nullableCollegeCode(collegeCode string) any {
+	trimmed := strings.TrimSpace(collegeCode)
+	if trimmed == "" {
+		return nil
+	}
+
+	return trimmed
+}
+
 // queries
 
 func (r *ProgramRepository) GetAll(search, sortBy, order string, page, pageSize int, collegeCode string) ([]Program, int, error) {
+	ctx, cancel := utils.NewDBContext()
+	defer cancel()
+
 	offset := (page - 1) * pageSize
 	pattern := utils.SearchPattern(search)
 	sortColumn := normalizeProgramSort(sortBy)
@@ -54,13 +62,17 @@ func (r *ProgramRepository) GetAll(search, sortBy, order string, page, pageSize 
 		WHERE  (p.name ILIKE $1
 		OR     p.code ILIKE $1
 		OR     c.name ILIKE $1)
-		AND    ($2 = '' OR p.college_code = $2)
+		AND    (
+			$2 = ''
+			OR ($2 = $5 AND p.college_code IS NULL)
+			OR ($2 <> $5 AND p.college_code = $2)
+		)
 		ORDER  BY %s %s
 		LIMIT  $3
 		OFFSET $4
 	`, sortColumn, sortOrder)
 
-	rows, err := r.pool.Query(r.ctx(), query, pattern, collegeCode, pageSize, offset)
+	rows, err := r.pool.Query(ctx, query, pattern, collegeCode, pageSize, offset, noCollegeFilter)
 	if err != nil {
 		return nil, 0, fmt.Errorf("GetAll programs: %w", err)
 	}
@@ -78,69 +90,85 @@ func (r *ProgramRepository) GetAll(search, sortBy, order string, page, pageSize 
 		programs = append(programs, p)
 	}
 
+	if err := rows.Err(); err != nil {
+		return nil, 0, fmt.Errorf("iterate programs: %w", err)
+	}
+
 	var total int
-	if err = r.pool.QueryRow(r.ctx(), `
+	if err = r.pool.QueryRow(ctx, `
 		SELECT COUNT(*)
 		FROM   program p
 		LEFT JOIN college c ON p.college_code = c.code
 		WHERE  (p.name ILIKE $1
 		OR     p.code ILIKE $1
 		OR     c.name ILIKE $1)
-		AND    ($2 = '' OR p.college_code = $2)
-	`, pattern, collegeCode).Scan(&total); err != nil {
+		AND    (
+			$2 = ''
+			OR ($2 = $3 AND p.college_code IS NULL)
+			OR ($2 <> $3 AND p.college_code = $2)
+		)
+	`, pattern, collegeCode, noCollegeFilter).Scan(&total); err != nil {
 		return nil, 0, fmt.Errorf("count programs: %w", err)
 	}
 
 	return programs, total, nil
 }
 
-func (r *ProgramRepository) GetByCode(code string) (Program, error) {
-	var p Program
-	if err := r.pool.QueryRow(r.ctx(), `
-		SELECT p.code, p.name, COALESCE(p.college_code, ''),
-		       COALESCE(c.code, ''), COALESCE(c.name, '')
-		FROM   program p
-		LEFT JOIN college c ON p.college_code = c.code
-		WHERE  p.code = $1
-	`, code).Scan(
-		&p.Code, &p.Name, &p.CollegeCode,
-		&p.College.Code, &p.College.Name,
-	); err != nil {
-		return Program{}, fmt.Errorf("GetByCode %s: %w", code, err)
-	}
-	return p, nil
-}
-
 // mutations
 
 func (r *ProgramRepository) Create(p Program) error {
-	if _, err := r.pool.Exec(r.ctx(), `
+	ctx, cancel := utils.NewDBContext()
+	defer cancel()
+
+	collegeCode := nullableCollegeCode(p.CollegeCode)
+
+	if _, err := r.pool.Exec(ctx, `
 		INSERT INTO program (code, name, college_code)
 		VALUES ($1, $2, $3)
-	`, p.Code, p.Name, p.CollegeCode); err != nil {
+	`, p.Code, p.Name, collegeCode); err != nil {
 		return fmt.Errorf("create program: %w", err)
 	}
 	return nil
 }
 
 func (r *ProgramRepository) Update(p Program) error {
-	if _, err := r.pool.Exec(r.ctx(), `
+	ctx, cancel := utils.NewDBContext()
+	defer cancel()
+
+	collegeCode := nullableCollegeCode(p.CollegeCode)
+
+	tag, err := r.pool.Exec(ctx, `
 		UPDATE program
 		SET    name         = $1,
 		       college_code = $2
 		WHERE  code         = $3
-	`, p.Name, p.CollegeCode, p.Code); err != nil {
+	`, p.Name, collegeCode, p.Code)
+	if err != nil {
 		return fmt.Errorf("update program %s: %w", p.Code, err)
 	}
+
+	if tag.RowsAffected() == 0 {
+		return fmt.Errorf("update program %s: no matching record", p.Code)
+	}
+
 	return nil
 }
 
 func (r *ProgramRepository) Delete(code string) error {
-	if _, err := r.pool.Exec(r.ctx(), `
+	ctx, cancel := utils.NewDBContext()
+	defer cancel()
+
+	tag, err := r.pool.Exec(ctx, `
 		DELETE FROM program
 		WHERE  code = $1
-	`, code); err != nil {
+	`, code)
+	if err != nil {
 		return fmt.Errorf("delete program %s: %w", code, err)
 	}
+
+	if tag.RowsAffected() == 0 {
+		return fmt.Errorf("delete program %s: no matching record", code)
+	}
+
 	return nil
 }

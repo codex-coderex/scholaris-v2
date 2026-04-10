@@ -6,13 +6,34 @@ export function calculatePageSize(viewportHeight: number) {
 }
 
 export function setupResponsivePageSize(onPageSize: (next: number) => void, onReload: () => void) {
-  onPageSize(calculatePageSize(window.innerHeight))
+  let currentPageSize = calculatePageSize(window.innerHeight)
+  onPageSize(currentPageSize)
+  let resizeDebounceTimer: ReturnType<typeof setTimeout> | null = null
 
   const resize = () => {
-    onPageSize(calculatePageSize(window.innerHeight))
-    onReload()
+    const nextPageSize = calculatePageSize(window.innerHeight)
+    if (nextPageSize === currentPageSize) {
+      return
+    }
+
+    currentPageSize = nextPageSize
+
+    if (resizeDebounceTimer) {
+      clearTimeout(resizeDebounceTimer)
+    }
+
+    resizeDebounceTimer = setTimeout(() => {
+      resizeDebounceTimer = null
+      onPageSize(currentPageSize)
+      onReload()
+    }, 180)
   }
 
   window.addEventListener('resize', resize)
-  return () => window.removeEventListener('resize', resize)
+  return () => {
+    if (resizeDebounceTimer) {
+      clearTimeout(resizeDebounceTimer)
+    }
+    window.removeEventListener('resize', resize)
+  }
 }

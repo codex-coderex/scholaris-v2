@@ -15,6 +15,8 @@ type CollegeOption = {
 }
 
 export class ProgramsViewModel {
+  readonly noCollegeFilterCode = '__NO_COLLEGE__'
+
   query = new TableQueryViewModel('p.code')
 
   programs = $state<ProgramRow[]>([])
@@ -29,7 +31,6 @@ export class ProgramsViewModel {
   formOpen = $state(false)
   confirmOpen = $state(false)
   deleteTarget = $state<ProgramRow | null>(null)
-  editProgramCode = $state('')
 
   code = $state('')
   name = $state('')
@@ -37,12 +38,19 @@ export class ProgramsViewModel {
   filterCollegeCode = $state('')
   formError = $state('')
 
+  searchDebounceTimer: ReturnType<typeof setTimeout> | null = null
+
   selectedCollege = $derived(this.colleges.find((college) => college.code === this.selectedCollegeCode) ?? null)
-  selectedCollegeLabel = $derived(this.selectedCollege ? `${this.selectedCollege.code} — ${this.selectedCollege.name}` : '')
+  selectedCollegeLabel = $derived(
+    this.selectedCollege
+      ? `${this.selectedCollege.code} — ${this.selectedCollege.name}`
+      : this.formMode === 'edit' && !this.selectedCollegeCode
+        ? '(No College)'
+        : ''
+  )
 
   openAdd() {
     this.formMode = 'create'
-    this.editProgramCode = ''
     this.code = ''
     this.name = ''
     this.selectedCollegeCode = ''
@@ -52,7 +60,6 @@ export class ProgramsViewModel {
 
   openEdit(program: ProgramRow) {
     this.formMode = 'edit'
-    this.editProgramCode = program.code
     this.code = program.code
     this.name = program.name
     this.selectedCollegeCode = program.college_code ?? program.college?.code ?? ''
@@ -76,7 +83,12 @@ export class ProgramsViewModel {
   }
 
   async loadOptions() {
-    this.colleges = await fetchCollegeOptions()
+    try {
+      this.colleges = await fetchCollegeOptions()
+    } catch (caught: unknown) {
+      this.colleges = []
+      this.error = caught instanceof Error ? caught.message : 'Failed to load college options'
+    }
   }
 
   async load() {
@@ -124,7 +136,15 @@ export class ProgramsViewModel {
 
   handleSearch(value: string) {
     this.query.setSearch(value)
-    void this.load()
+
+    if (this.searchDebounceTimer) {
+      clearTimeout(this.searchDebounceTimer)
+    }
+
+    this.searchDebounceTimer = setTimeout(() => {
+      this.searchDebounceTimer = null
+      void this.load()
+    }, 250)
   }
 
   previousPage() {
@@ -134,19 +154,6 @@ export class ProgramsViewModel {
 
   nextPage() {
     this.query.nextPage()
-    void this.load()
-  }
-
-  goToPage(nextPageNumber: number) {
-    this.query.goToPage(nextPageNumber)
-    void this.load()
-  }
-
-  handlePageJump(event: KeyboardEvent) {
-    const nextPageNumber = this.query.parsePageJump(event)
-    if (!nextPageNumber) return
-
-    this.query.goToPage(nextPageNumber)
     void this.load()
   }
 
@@ -173,8 +180,8 @@ export class ProgramsViewModel {
     const codeError = validateCode(this.code.trim(), 'Program code')
     const nameError = validateLabel(this.name.trim(), 'Program name')
 
-    if (codeError || nameError || !this.selectedCollegeCode) {
-      this.formError = codeError ?? nameError ?? 'College is required'
+    if (codeError || nameError) {
+      this.formError = codeError ?? nameError ?? 'Complete all required fields before saving'
       return
     }
 
@@ -191,7 +198,7 @@ export class ProgramsViewModel {
     })
 
     try {
-      if (this.formMode === 'edit' && this.editProgramCode) {
+      if (this.formMode === 'edit') {
         await UpdateProgram(payload)
         pushToast(`Program ${this.code.trim()} updated`, 'success')
       } else {
