@@ -43,7 +43,7 @@ To initialize the schema and manage data:
 2.  Enter your local credentials (Host: `localhost`, User: `postgres`).
 3.  Right-click the connection and select **New > Database**. 
 4.  Name the database `scholarisdb` or any name of your choosing.
-5.  Update your `config.json` in the project root with your matching DB name and credentials.
+5.  Update your `config.json` in the project root with your matching DB name and credentials. (You are given an config.example.json, however the file must be named config.json)
 
 ### Note:
 If you plan on using other Database Managers, you can search online for the setup and deployment for your specific software.
