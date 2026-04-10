@@ -205,6 +205,15 @@ body {
   max-width: none;
   margin: 0;
   height: 100vh;
+  transition: filter var(--transition-base), transform var(--transition-base), opacity var(--transition-base);
+}
+
+body[data-ssis-modal-open="true"] .ssis-shell {
+  filter: blur(6px) saturate(0.92);
+  transform: scale(0.995);
+  opacity: 0.98;
+  pointer-events: none;
+  user-select: none;
 }
 
 .ssis-sidebar {
@@ -751,8 +760,12 @@ body {
 .modal.modal-open .modal-backdrop,
 .modal.modal-open .ssis-modal-backdrop {
   background: var(--modal-overlay);
-  backdrop-filter: blur(var(--modal-backdrop-blur)) saturate(135%);
-  -webkit-backdrop-filter: blur(var(--modal-backdrop-blur)) saturate(135%);
+}
+
+.ssis-modal-portal {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
 }
 
 .ssis-modal-box {

@@ -13,6 +13,38 @@
 
   let { open, title, onClose, size = 'md', closable = false, children }: Props = $props()
 
+  function portal(node: HTMLDivElement) {
+    if (typeof document === 'undefined') {
+      return
+    }
+
+    document.body.appendChild(node)
+
+    return {
+      destroy() {
+        if (node.parentNode === document.body) {
+          document.body.removeChild(node)
+        }
+      }
+    }
+  }
+
+  $effect(() => {
+    if (typeof document === 'undefined') {
+      return
+    }
+
+    if (open) {
+      document.body.dataset.ssisModalOpen = 'true'
+    } else {
+      delete document.body.dataset.ssisModalOpen
+    }
+
+    return () => {
+      delete document.body.dataset.ssisModalOpen
+    }
+  })
+
   let sizeClass = $derived(
     {
       sm: 'max-w-md',
@@ -24,7 +56,7 @@
 </script>
 
 {#if open}
-  <div class="modal modal-open">
+  <div class="modal modal-open ssis-modal-portal" use:portal>
     <div
       class="modal-box ssis-modal-box relative w-full overflow-visible {sizeClass} p-0"
       transition:scale={{ start: 0.98, duration: 140 }}
