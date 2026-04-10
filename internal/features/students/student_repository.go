@@ -56,12 +56,12 @@ func (r *StudentRepository) GetAll(search, sortBy, order string, page, pageSize 
 
 	query := fmt.Sprintf(`
 		SELECT s.id, s.first_name, s.last_name,
-		       s.year, s.gender, s.program_code,
-		       p.code, p.name,
-		       c.code, c.name
+		       s.year, s.gender, COALESCE(s.program_code, ''),
+		       COALESCE(p.code, ''), COALESCE(p.name, ''),
+		       COALESCE(c.code, ''), COALESCE(c.name, '')
 		FROM   student s
-		JOIN   program p ON s.program_code = p.code
-		JOIN   college c ON p.college_code = c.code
+		LEFT JOIN program p ON s.program_code = p.code
+		LEFT JOIN college c ON p.college_code = c.code
 		WHERE  s.id         ILIKE $1
 		OR     s.first_name ILIKE $1
 		OR     s.last_name  ILIKE $1
@@ -96,8 +96,8 @@ func (r *StudentRepository) GetAll(search, sortBy, order string, page, pageSize 
 	if err = r.pool.QueryRow(r.ctx(), `
 		SELECT COUNT(*)
 		FROM   student s
-		JOIN   program p ON s.program_code = p.code
-		JOIN   college c ON p.college_code = c.code
+		LEFT JOIN program p ON s.program_code = p.code
+		LEFT JOIN college c ON p.college_code = c.code
 		WHERE  s.id         ILIKE $1
 		OR     s.first_name ILIKE $1
 		OR     s.last_name  ILIKE $1
@@ -114,12 +114,12 @@ func (r *StudentRepository) GetById(id string) (Student, error) {
 	var s Student
 	if err := r.pool.QueryRow(r.ctx(), `
 		SELECT s.id, s.first_name, s.last_name,
-		       s.year, s.gender, s.program_code,
-		       p.code, p.name,
-		       c.code, c.name
+		       s.year, s.gender, COALESCE(s.program_code, ''),
+		       COALESCE(p.code, ''), COALESCE(p.name, ''),
+		       COALESCE(c.code, ''), COALESCE(c.name, '')
 		FROM   student s
-		JOIN   program p ON s.program_code = p.code
-		JOIN   college c ON p.college_code = c.code
+		LEFT JOIN program p ON s.program_code = p.code
+		LEFT JOIN college c ON p.college_code = c.code
 		WHERE  s.id = $1
 	`, id).Scan(
 		&s.Id, &s.FirstName, &s.LastName,

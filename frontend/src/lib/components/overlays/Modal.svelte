@@ -49,6 +49,6 @@
       </div>
     </div>
 
-    <div class="modal-backdrop" onclick={onClose} aria-hidden="true"></div>
+    <div class="modal-backdrop ssis-modal-backdrop" onclick={onClose} aria-hidden="true"></div>
   </div>
 {/if}
