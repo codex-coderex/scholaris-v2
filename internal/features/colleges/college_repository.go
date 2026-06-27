@@ -100,16 +100,17 @@ func (r *CollegeRepository) Update(c College) error {
 	defer cancel()
 
 	tag, err := r.pool.Exec(ctx, `
-		UPDATE college
-		SET    name = $1
-		WHERE  code = $2
-	`, c.Name, c.Code)
+        UPDATE college
+        SET    code = $1,
+               name = $2
+        WHERE  code = $3
+    `, c.Code, c.Name, c.OriginalCode)
 	if err != nil {
-		return fmt.Errorf("update college %s: %w", c.Code, err)
+		return fmt.Errorf("update college %s: %w", c.OriginalCode, err)
 	}
 
 	if tag.RowsAffected() == 0 {
-		return fmt.Errorf("update college %s: no matching record", c.Code)
+		return fmt.Errorf("update college %s: no matching record", c.OriginalCode)
 	}
 
 	return nil

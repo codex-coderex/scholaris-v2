@@ -76,14 +76,16 @@ func CreateTables(pool *pgxpool.Pool) error {
 
 		ALTER TABLE IF EXISTS program
 			ADD CONSTRAINT program_college_code_fkey
-			FOREIGN KEY (college_code) REFERENCES college(code) ON DELETE SET NULL;
+			FOREIGN KEY (college_code) REFERENCES college(code) 
+			ON DELETE SET NULL ON UPDATE CASCADE;
 
 		ALTER TABLE IF EXISTS student
 			DROP CONSTRAINT IF EXISTS student_program_code_fkey;
 
 		ALTER TABLE IF EXISTS student
 			ADD CONSTRAINT student_program_code_fkey
-			FOREIGN KEY (program_code) REFERENCES program(code) ON DELETE SET NULL;
+			FOREIGN KEY (program_code) REFERENCES program(code) 
+			ON DELETE SET NULL ON UPDATE CASCADE;
 	`)
 	return err
 }

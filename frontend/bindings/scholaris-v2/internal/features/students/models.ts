@@ -75,6 +75,7 @@ export class Student {
     "gender": string;
     "program_code": string;
     "program": Program;
+    "original_id": string;
 
     /** Creates a new Student instance. */
     constructor($$source: Partial<Student> = {}) {
@@ -98,6 +99,9 @@ export class Student {
         }
         if (!("program" in $$source)) {
             this["program"] = (new Program());
+        }
+        if (!("original_id" in $$source)) {
+            this["original_id"] = "";
         }
 
         Object.assign(this, $$source);

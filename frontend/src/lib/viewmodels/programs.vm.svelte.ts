@@ -17,7 +17,7 @@ type CollegeOption = {
 export class ProgramsViewModel {
   readonly noCollegeFilterCode = '__NO_COLLEGE__'
 
-  query = new TableQueryViewModel('p.code')
+  query = new TableQueryViewModel('code')
 
   programs = $state<ProgramRow[]>([])
   colleges = $state<CollegeRow[]>([])
@@ -33,6 +33,7 @@ export class ProgramsViewModel {
   deleteTarget = $state<ProgramRow | null>(null)
 
   code = $state('')
+  originalCode = $state('')
   name = $state('')
   selectedCollegeCode = $state('')
   filterCollegeCode = $state('')
@@ -61,6 +62,7 @@ export class ProgramsViewModel {
   openEdit(program: ProgramRow) {
     this.formMode = 'edit'
     this.code = program.code
+    this.originalCode = program.code
     this.name = program.name
     this.selectedCollegeCode = program.college_code ?? program.college?.code ?? ''
     this.formError = ''
@@ -91,6 +93,17 @@ export class ProgramsViewModel {
     }
   }
 
+
+  private backendSortBy() {
+    const sortMap: Record<string, string> = {
+      code: 'p.code',
+      name: 'p.name',
+      college: 'p.college_code'
+    }
+
+    return sortMap[this.query.sortBy] ?? sortMap.code
+  }
+
   async load() {
     const requestId = ++this.requestVersion
     const hasExistingRows = this.programs.length > 0
@@ -102,7 +115,7 @@ export class ProgramsViewModel {
     try {
       const [rows, total] = await GetPrograms(
         this.query.search,
-        this.query.sortBy,
+        this.backendSortBy(),
         this.query.order,
         this.query.page,
         this.query.pageSize,
@@ -191,6 +204,7 @@ export class ProgramsViewModel {
       code: this.code.trim(),
       name: this.name.trim(),
       college_code: this.selectedCollegeCode,
+      original_code: this.originalCode,
       college: new CollegeModel({
         code: selectedCollegeRow?.code ?? this.selectedCollegeCode,
         name: selectedCollegeRow?.name ?? ''

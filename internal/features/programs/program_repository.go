@@ -27,8 +27,11 @@ func normalizeProgramSort(sortBy string) string {
 		return "p.code"
 	case "name", "p.name":
 		return "p.name"
-	case "college", "c.name":
-		return "c.name"
+	case "college", "c.code", "c.name", "p.college_code":
+		// Sort by what the UI displays:
+		// - real college code when the college still exists
+		// - N/A when the program's saved college_code points to a deleted college
+		return "CASE WHEN c.code IS NULL THEN 'N/A' ELSE c.code END"
 	default:
 		return "p.code"
 	}
@@ -61,13 +64,15 @@ func (r *ProgramRepository) GetAll(search, sortBy, order string, page, pageSize 
 		LEFT JOIN college c ON p.college_code = c.code
 		WHERE  (p.name ILIKE $1
 		OR     p.code ILIKE $1
+		OR     c.code ILIKE $1
+		OR     c.code ILIKE $1
 		OR     c.name ILIKE $1)
 		AND    (
 			$2 = ''
 			OR ($2 = $5 AND p.college_code IS NULL)
 			OR ($2 <> $5 AND p.college_code = $2)
 		)
-		ORDER  BY %s %s
+		ORDER  BY %s %s, p.code ASC
 		LIMIT  $3
 		OFFSET $4
 	`, sortColumn, sortOrder)
@@ -101,6 +106,8 @@ func (r *ProgramRepository) GetAll(search, sortBy, order string, page, pageSize 
 		LEFT JOIN college c ON p.college_code = c.code
 		WHERE  (p.name ILIKE $1
 		OR     p.code ILIKE $1
+		OR     c.code ILIKE $1
+		OR     c.code ILIKE $1
 		OR     c.name ILIKE $1)
 		AND    (
 			$2 = ''
@@ -138,17 +145,19 @@ func (r *ProgramRepository) Update(p Program) error {
 	collegeCode := nullableCollegeCode(p.CollegeCode)
 
 	tag, err := r.pool.Exec(ctx, `
-		UPDATE program
-		SET    name         = $1,
-		       college_code = $2
-		WHERE  code         = $3
-	`, p.Name, collegeCode, p.Code)
+        UPDATE program
+        SET    code         = $1,
+               name         = $2,
+               college_code = $3
+        WHERE  code         = $4
+    `, p.Code, p.Name, collegeCode, p.OriginalCode)
+
 	if err != nil {
-		return fmt.Errorf("update program %s: %w", p.Code, err)
+		return fmt.Errorf("update program %s: %w", p.OriginalCode, err)
 	}
 
 	if tag.RowsAffected() == 0 {
-		return fmt.Errorf("update program %s: no matching record", p.Code)
+		return fmt.Errorf("update program %s: no matching record", p.OriginalCode)
 	}
 
 	return nil

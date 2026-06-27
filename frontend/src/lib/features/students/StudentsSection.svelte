@@ -43,6 +43,7 @@
   <div class="ssis-table-panel">
     <StudentsTable
       rows={vm.students}
+      colleges={vm.colleges}
       loading={vm.loading}
       emptyMessage={vm.error.toLowerCase().includes('no database') ? 'No database found. Start PostgreSQL and reload the app.' : 'No students found'}
       sortBy={vm.query.sortBy}

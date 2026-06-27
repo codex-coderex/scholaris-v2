@@ -8,6 +8,7 @@ import { Create as $Create } from "@wailsio/runtime";
 export class College {
     "code": string;
     "name": string;
+    "original_code": string;
 
     /** Creates a new College instance. */
     constructor($$source: Partial<College> = {}) {
@@ -16,6 +17,9 @@ export class College {
         }
         if (!("name" in $$source)) {
             this["name"] = "";
+        }
+        if (!("original_code" in $$source)) {
+            this["original_code"] = "";
         }
 
         Object.assign(this, $$source);

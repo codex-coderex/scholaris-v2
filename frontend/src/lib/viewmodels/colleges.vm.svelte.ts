@@ -24,6 +24,7 @@ export class CollegesViewModel {
   deleteTarget = $state<CollegeRow | null>(null)
 
   code = $state('')
+  originalCode = $state('')
   name = $state('')
   formError = $state('')
 
@@ -40,6 +41,7 @@ export class CollegesViewModel {
   openEdit(college: CollegeRow) {
     this.formMode = 'edit'
     this.code = college.code
+    this.originalCode = college.code 
     this.name = college.name
     this.formError = ''
     this.formOpen = true
@@ -149,7 +151,8 @@ export class CollegesViewModel {
 
     const payload = new CollegeModel({
       code: this.code.trim(),
-      name: this.name.trim()
+      name: this.name.trim(),
+      original_code: this.originalCode 
     })
 
     try {

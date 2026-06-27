@@ -21,7 +21,7 @@ type ProgramOption = {
 }
 
 export class StudentsViewModel {
-  query = new TableQueryViewModel('s.id')
+  query = new TableQueryViewModel('id')
 
   students = $state<StudentRow[]>([])
   programs = $state<ProgramRow[]>([])
@@ -39,6 +39,8 @@ export class StudentsViewModel {
 
   studentIdYear = $state('')
   studentIdSeq = $state('')
+  originalIdYear = $state('')
+  originalIdSeq  = $state('')
   firstName = $state('')
   lastName = $state('')
   year = $state('1')
@@ -77,6 +79,8 @@ export class StudentsViewModel {
     const parts = student.id.split('-')
     this.studentIdYear = parts[0] ?? ''
     this.studentIdSeq = parts[1] ?? ''
+    this.originalIdYear = parts[0] ?? ''
+    this.originalIdSeq  = parts[1] ?? ''
     this.firstName = student.first_name
     this.lastName = student.last_name
     this.year = String(student.year)
@@ -130,6 +134,21 @@ export class StudentsViewModel {
     }
   }
 
+
+  private backendSortBy() {
+    const sortMap: Record<string, string> = {
+      id: 's.id',
+      first_name: 's.first_name',
+      last_name: 's.last_name',
+      program: 'p.code',
+      college: 'p.college_code',
+      year: 's.year',
+      gender: 's.gender'
+    }
+
+    return sortMap[this.query.sortBy] ?? sortMap.id
+  }
+
   async load() {
     const requestId = ++this.requestVersion
     const hasExistingRows = this.students.length > 0
@@ -141,7 +160,7 @@ export class StudentsViewModel {
     try {
       const [rows, total] = await GetStudents(
         this.query.search,
-        this.query.sortBy,
+        this.backendSortBy(),
         this.query.order,
         this.query.page,
         this.query.pageSize
@@ -210,6 +229,7 @@ export class StudentsViewModel {
 
   async saveStudent() {
     const id = `${this.studentIdYear.trim()}-${this.studentIdSeq.trim()}`
+    const originalId = `${this.originalIdYear}-${this.originalIdSeq}`  
     const idError = validateStudentID(id)
     const firstError = validateName(this.firstName.trim(), 'First name')
     const lastError = validateName(this.lastName.trim(), 'Last name')
@@ -224,6 +244,7 @@ export class StudentsViewModel {
 
     const payload = new StudentModel({
       id,
+      original_id: originalId,  
       first_name: this.firstName.trim(),
       last_name: this.lastName.trim(),
       year: Number(this.year),

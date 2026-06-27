@@ -6,8 +6,21 @@
   import RowActions from '$lib/components/shared/RowActions.svelte'
   import ActionsHeader from '$lib/components/shared/ActionsHeader.svelte'
 
+  type CollegeLookup = {
+    code: string
+    name?: string
+  }
+
+  type ProgramWithRefs = ProgramRow & {
+    college_code?: string | null
+    college?: {
+      code?: string | null
+    } | null
+  }
+
   type Props = {
     rows: ProgramRow[]
+    colleges: CollegeLookup[]
     loading: boolean
     emptyMessage?: string
     sortBy: string
@@ -19,6 +32,7 @@
 
   let {
     rows,
+    colleges,
     loading,
     emptyMessage = 'No programs found',
     sortBy,
@@ -27,6 +41,20 @@
     onEdit,
     onDelete
   }: Props = $props()
+
+  function hasCollege(code?: string | null) {
+    return !!code && colleges.some((college) => college.code === code)
+  }
+
+  function displayCollege(program: ProgramWithRefs) {
+    const code = program.college?.code ?? program.college_code ?? ''
+
+    if (!hasCollege(code)) {
+      return { label: 'N/A', state: 'missing' }
+    }
+
+    return { label: code, state: 'ok' }
+  }
 </script>
 
 <div class="ssis-table-wrap overflow-x-auto">
@@ -37,7 +65,7 @@
           label="Code"
           sortBy={sortBy}
           order={order}
-          sortKey="p.code"
+          sortKey="code"
           headerClass="ssis-code-col-header"
           onSort={onSort}
         />
@@ -45,8 +73,15 @@
           label="Name"
           sortBy={sortBy}
           order={order}
-          sortKey="p.name"
+          sortKey="name"
           headerClass="ssis-name-col-header"
+          onSort={onSort}
+        />
+        <SortHeader
+          label="College"
+          sortBy={sortBy}
+          order={order}
+          sortKey="college"
           onSort={onSort}
         />
         <ActionsHeader />
@@ -54,11 +89,19 @@
     </thead>
 
     <tbody class="divide-y divide-(--border-subtle)">
-      <TableShell loading={loading} hasData={rows.length > 0} colspan={3} {emptyMessage}>
+      <TableShell loading={loading} hasData={rows.length > 0} colspan={4} {emptyMessage}>
         {#each rows as program}
+          {@const collegeDisplay = displayCollege(program as ProgramWithRefs)}
+
           <tr class="ssis-row transition-colors hover:bg-(--bg-hover)">
             <td class="ssis-cell-primary ssis-code-col-cell px-4 py-3"><span class="ssis-code-pill">{program.code}</span></td>
             <td class="ssis-cell-muted ssis-cell-clip ssis-name-col-cell px-4 py-3">{program.name}</td>
+            <td class="ssis-cell-muted px-4 py-3">
+              <span
+                class="ssis-code-pill"
+                class:ssis-code-pill--missing={collegeDisplay.state === 'missing'}
+              >{collegeDisplay.label}</span>
+            </td>
             <td class="ssis-action-cell px-4 py-3 text-center">
               <RowActions onEdit={() => onEdit(program)} onDelete={() => onDelete(program)} />
             </td>

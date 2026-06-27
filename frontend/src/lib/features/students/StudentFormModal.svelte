@@ -94,7 +94,6 @@
     { code: 'Other', name: 'Other' }
   ]
 
-  let isEditMode = $derived(title.toLowerCase().includes('edit'))
   let selectedYearLabel = $derived(yearOptions.find((option) => option.code === year)?.name ?? '')
   let selectedGenderLabel = $derived(genderOptions.find((option) => option.code === gender)?.name ?? '')
 </script>
@@ -108,7 +107,6 @@
           class="input input-bordered w-full bg-(--bg-base) border-(--border) text-(--text-primary) focus:border-(--accent) focus:outline-none"
           value={studentIdYear}
           maxlength="4"
-          disabled={isEditMode}
           placeholder="2026"
           oninput={(event) => {
             onStudentIdYearInput((event.currentTarget as HTMLInputElement).value)
@@ -122,7 +120,6 @@
           class="input input-bordered w-full bg-(--bg-base) border-(--border) text-(--text-primary) focus:border-(--accent) focus:outline-none"
           value={studentIdSeq}
           maxlength="4"
-          disabled={isEditMode}
           placeholder="0001"
           oninput={(event) => {
             onStudentIdSeqInput((event.currentTarget as HTMLInputElement).value)

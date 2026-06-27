@@ -10,6 +10,7 @@ type Student struct {
 	Gender      string  `json:"gender"`
 	ProgramCode string  `json:"program_code"`
 	Program     Program `json:"program"`
+	OriginalId  string  `json:"original_id"`
 }
 
 type Program struct {

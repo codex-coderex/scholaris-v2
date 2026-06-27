@@ -2,6 +2,7 @@ package students
 
 import (
 	"fmt"
+	"regexp"
 
 	"scholaris-v2/internal/shared/utils"
 
@@ -31,9 +32,15 @@ func normalizeStudentSort(sortBy string) string {
 	case "gender", "s.gender":
 		return "s.gender"
 	case "program", "p.code":
-		return "p.code"
-	case "college", "c.name":
-		return "c.name"
+		// Sort by what the UI displays:
+		// - real program code when the program still exists
+		// - N/A when the student's saved program_code points to a deleted program
+		return "CASE WHEN p.code IS NULL THEN 'N/A' ELSE p.code END"
+	case "college", "c.code", "c.name", "p.college_code":
+		// Sort by what the UI displays:
+		// - real college code when both program and college still exist
+		// - N/A when the program is deleted or the college is deleted
+		return "CASE WHEN p.code IS NULL OR c.code IS NULL THEN 'N/A' ELSE c.code END"
 	default:
 		return "s.id"
 	}
@@ -63,7 +70,9 @@ func (r *StudentRepository) GetAll(search, sortBy, order string, page, pageSize 
 		OR     s.last_name  ILIKE $1
 		OR     p.code       ILIKE $1
 		OR     p.name       ILIKE $1
-		ORDER  BY %s %s
+		OR     c.code       ILIKE $1
+		OR     c.name       ILIKE $1
+		ORDER  BY %s %s, s.id ASC
 		LIMIT  $2
 		OFFSET $3
 	`, sortColumn, sortOrder)
@@ -103,6 +112,8 @@ func (r *StudentRepository) GetAll(search, sortBy, order string, page, pageSize 
 		OR     s.last_name  ILIKE $1
 		OR     p.code       ILIKE $1
 		OR     p.name       ILIKE $1
+		OR     c.code       ILIKE $1
+		OR     c.name       ILIKE $1
 	`, pattern).Scan(&total); err != nil {
 		return nil, 0, fmt.Errorf("count students: %w", err)
 	}
@@ -111,8 +122,13 @@ func (r *StudentRepository) GetAll(search, sortBy, order string, page, pageSize 
 }
 
 // mutations
+var studentIDPattern = regexp.MustCompile(`^\d{4}-\d{4}$`)
 
 func (r *StudentRepository) Create(s Student) error {
+	if !studentIDPattern.MatchString(s.Id) {
+		return fmt.Errorf("invalid student ID format: must be YYYY-NNNN (e.g. 2024-0001)")
+	}
+
 	ctx, cancel := utils.NewDBContext()
 	defer cancel()
 
@@ -126,24 +142,29 @@ func (r *StudentRepository) Create(s Student) error {
 }
 
 func (r *StudentRepository) Update(s Student) error {
+	if !studentIDPattern.MatchString(s.Id) {
+		return fmt.Errorf("invalid student ID format: must be YYYY-NNNN (e.g. 2024-0001)")
+	}
+
 	ctx, cancel := utils.NewDBContext()
 	defer cancel()
 
 	tag, err := r.pool.Exec(ctx, `
-		UPDATE student
-		SET    first_name   = $1,
-		       last_name    = $2,
-		       year         = $3,
-		       gender       = $4,
-		       program_code = $5
-		WHERE  id           = $6
-	`, s.FirstName, s.LastName, s.Year, s.Gender, s.ProgramCode, s.Id)
+        UPDATE student
+        SET    id           = $1,
+               first_name   = $2,
+               last_name    = $3,
+               year         = $4,
+               gender       = $5,
+               program_code = $6
+        WHERE  id           = $7
+    `, s.Id, s.FirstName, s.LastName, s.Year, s.Gender, s.ProgramCode, s.OriginalId)
 	if err != nil {
-		return fmt.Errorf("update student %s: %w", s.Id, err)
+		return fmt.Errorf("update student %s: %w", s.OriginalId, err)
 	}
 
 	if tag.RowsAffected() == 0 {
-		return fmt.Errorf("update student %s: no matching record", s.Id)
+		return fmt.Errorf("update student %s: no matching record", s.OriginalId)
 	}
 
 	return nil
